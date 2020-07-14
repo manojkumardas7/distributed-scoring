@@ -151,6 +151,3 @@ if __name__ == "__main__":
     # driverless ai license setup for mojo file
     os.environ['DRIVERLESS_AI_LICENSE_FILE'] = os.path.join(absoluteCodePath,"license.sig")
     df = mojoModelScoring(spark, absoluteCodePath, myMojoFile, myDatasetPath)
-# initiate spark frame code, put code lines here to initiate spark given that spark-submit command will be used usinig properties file as well
-# create a spark frame from a sample csv (can create a function for that on the bricks)
-# utilize your scoring funtion
