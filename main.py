@@ -142,7 +142,14 @@ if __name__ == "__main__":
         list(map(lambda x: list(
             map(lambda y: checkAndTerminate(eval(myTitle(y[0])) is not None, y[0] + " is not specified"), argsDiction[x])),
                 argsDiction.keys())) is None
+    
+    # Initialising spark
+    from pyspark.sql import SparkSession
+    spark = SparkSession.builder.appName('DistributedScoring').master('local[*]').getOrCreate()
 
+    # TODO: Re place this env variable setup inside the mojo function
+    # driverless ai license setup for mojo file
+    os.environ['DRIVERLESS_AI_LICENSE_FILE'] = os.path.join(absoluteCodePath,"license.sig")
     df = mojoModelScoring(spark, absoluteCodePath, myMojoFile, myDatasetPath)
 # initiate spark frame code, put code lines here to initiate spark given that spark-submit command will be used usinig properties file as well
 # create a spark frame from a sample csv (can create a function for that on the bricks)
