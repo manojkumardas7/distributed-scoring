@@ -20,6 +20,7 @@ import ast
 import glob
 import argparse
 import configparser
+from bricks.sparkBrick import getSparkFrameFromCSV, mojoModelScoring
 
 ######### Operational Functions
 myTitle = lambda x: "my" + x[0].title() + x[1:]
@@ -71,6 +72,7 @@ def dataParse(x, y, z):
         return z(x)
     except:
         checkAndTerminate(False, 'Argument ' + y + ' placed incorrectly  in config file')
+
 generateList = lambda x, y: (list(map(listParser, x[1:-1].split(","))) if x[0]+x[-1] == '[]' else \
                     checkAndTerminate(False, "Argument "+ y + \
                         " not correctly placed, need to be enclosed with bar brackets")) \
@@ -86,8 +88,11 @@ if __name__ == "__main__":
     # Argument parsing using config file if not specified and final check of arguments
     configFileName = "test_config.cfg"
     #change the below dictionary accordingly, update the config file accordingly
-    # argsDiction = \
-    #     {"newSubSection"  : [["testListArgument", "list"], ["testIntArgument", "int"], ["testFloatArgument", "float"]]}
+    argsDiction = \
+        {
+            "modelParameters"  : [["mojoFile", "str"], ["pickleFile", "str"]],
+            "scoringParameters": [["targetColumn", "str"], ["columnSelection", "list"], ["datasetPath", "str"]]
+        }
     try:
         absoluteCodePath = os.path.split(os.path.realpath(__file__))[0]
     except Exception as e:
@@ -138,7 +143,7 @@ if __name__ == "__main__":
             map(lambda y: checkAndTerminate(eval(myTitle(y[0])) is not None, y[0] + " is not specified"), argsDiction[x])),
                 argsDiction.keys())) is None
 
-
+    df = mojoModelScoring(spark, absoluteCodePath, myMojoFile, myDatasetPath)
 # initiate spark frame code, put code lines here to initiate spark given that spark-submit command will be used usinig properties file as well
 # create a spark frame from a sample csv (can create a function for that on the bricks)
 # utilize your scoring funtion
