@@ -152,6 +152,6 @@ if __name__ == "__main__":
     # driverless ai license setup for mojo file
     os.environ['DRIVERLESS_AI_LICENSE_FILE'] = os.path.join(absoluteCodePath,"license.sig")
     if myColumnSelection is None:
-        df = mojoModelScoring(spark, absoluteCodePath, myMojoFile, myDatasetPath)
+        status, message, df = mojoModelScoring(spark, absoluteCodePath, myMojoFile, myDatasetPath)
     else:
-        df = mojoModelScoring(spark, absoluteCodePath, myMojoFile, myDatasetPath, myColumnSelection)
+        status, message, df = mojoModelScoring(spark, absoluteCodePath, myMojoFile, myDatasetPath, myColumnSelection)
