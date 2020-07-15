@@ -24,7 +24,7 @@ from pysparkling.ml import H2OMOJOPipelineModel
 # final = mojo.transform(df).select(df.columns + [col("prediction.*")]).select(df.columns + [col("`Label.b`").\
 #     alias("pb"), col("`Label.s`").alias("ps")]).withColumn("prediction", labelGenerator("ps").cast(IntegerType()))
 
-def getSparkFrameFromCSV(spark, datasetPath):
+def getSparkFrameFromCSV(spark, datasetPath, columnIndexList=None):
     """
     This function returns a spark dataframe from the provided csv file path
     
@@ -42,7 +42,26 @@ def getSparkFrameFromCSV(spark, datasetPath):
     """
     try:
         df = spark.read.format("csv").option("header", "true").option("inferschema", "true").load(datasetPath)
-        return True, "Dataset read into spark dataframe successfully", df
+        
+        # If all columns are to be selected, return
+        if columnIndexList is None:
+            return True, "Dataset read into spark dataframe successfully", df    
+        
+        # In case column index list is provided in config
+        # Dictionary to map index to column names
+        indexToColumnMap = dict(zip(list(range(0, len(df.columns))), df.columns))
+        columnList = []
+
+        # Adding mapped column names to those indices
+        for i, j in indexToColumnMap.items(): 
+            if i in columnIndexList: 
+                columnList.append(j)
+        df.createOrReplaceTempView("df_vw")
+        
+        # query to select just those columns
+        subsetDf = spark.sql("select {} from df_vw".format(tupe(columnList)))
+
+        return True, "Dataset read into spark dataframe successfully", subsetDf
     except Exception as e:
         print("Error encountered in reading csv file.\n", e)
         return False, e, None
@@ -71,9 +90,18 @@ def mojoModelScoring(spark, absoluteCodePath, mojoFile, scoringDataset, selectio
         df (pyspark.sql.dataframe) :
     """
     try:
+        # read the mojo file from the provided model object
         mojo = H2OMOJOPipelineModel.createFromMojo(os.path.join(*[absoluteCodePath, "model", mojoFile]))
-        _,_, df = getSparkFrameFromCSV(spark, os.path.join(*[absoluteCodePath, "inputs", scoringDataset]))
+        
+        # If all columns are to be selected from the passed dataframe
+        if selectionColumns is None:
+            _,_, df = getSparkFrameFromCSV(spark, os.path.join(*[absoluteCodePath, "inputs", scoringDataset]))
+        # in case certain columns are to be selected for transformation on mojo file
+        else:
+            _,_, df = getSparkFrameFromCSV(spark, os.path.join(*[absoluteCodePath, "inputs", scoringDataset]), selectionColumns)
+
         finalFrame = mojo.transform(df)
+
         return True, "{} dataset scored against mojo file {}".format(scoringDataset, mojoFile), finalFrame
     except Exception as e:
         print("Error occured while scoring the mojo file {} on the provided dataset{}:\n{}".format(mojoFile, scoringDataset, e))
