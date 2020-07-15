@@ -59,7 +59,7 @@ def getSparkFrameFromCSV(spark, datasetPath, columnIndexList=None):
         df.createOrReplaceTempView("df_vw")
         
         # query to select just those columns
-        subsetDf = spark.sql("select {} from df_vw".format(tupe(columnList)))
+        subsetDf = spark.sql("select {} from df_vw".format(','.join(columnList)))
 
         return True, "Dataset read into spark dataframe successfully", subsetDf
     except Exception as e:
