@@ -148,6 +148,7 @@ if __name__ == "__main__":
     spark = SparkSession.builder.appName('DistributedScoring').master('local[*]').getOrCreate()
 
     # TODO: Re place this env variable setup inside the mojo function
+    # TODO: Add functionality of selection columns and target column in the function
     # driverless ai license setup for mojo file
     os.environ['DRIVERLESS_AI_LICENSE_FILE'] = os.path.join(absoluteCodePath,"license.sig")
     df = mojoModelScoring(spark, absoluteCodePath, myMojoFile, myDatasetPath)
