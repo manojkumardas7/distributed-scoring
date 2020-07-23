@@ -66,43 +66,45 @@ def getSparkFrameFromCSV(spark, datasetPath, columnIndexList=None):
         print("Error encountered in reading csv file.\n", e)
         return False, e, None
 
-def mojoModelScoring(spark, absoluteCodePath, mojoFile, scoringDataset, selectionColumns=None, targetColumn=None):
+def pickleModelScoring(spark, scoreFrame, pojoFile):
+    """
+    """
+    pass
+
+def pmmlModelScoring(spark, scoreFrame, pmmlFile):
+    """
+    """
+    pass
+
+def pojoModelScoring(spark, scoreFrame, pojoFile):
+    """
+    """
+    pass
+
+def mojoModelScoring(spark, scoreFrame, mojoFile):
     """
     Performs scoring on the dataset provided against the mojo file passed to this scoring function
 
     Syntax:
-        status, message, df = mojoModelScoring(spark, absoluteCodePath, myMojoFile, myDatasetPath)
+        status, message, df = mojoModelScoring(spark, scoreFrame, mojoFile)
     
-    Mandatory Args:
-
-        spark (spark context)      : spark context
-        absoluteCodePath (str)     : path of the location of the main file
-        mojoFile (model object)    : model object to be used for scoring
-        scoringDataset (str)       : data to be scored against
-    
-    Optional Args:
-        selectionColumns (list)    : list of indices to be selected from the provided data
-        targetColumn (str)         : target column
+    Args:
+        spark (spark context)              : spark context
+        mojoFile (model object)            : model object to be used for scoring
+        scoreFrame (pyspark.sql.dataframe) : dataframe to be scored against
     
     Returns: 
-        status (bool)              :  
-        message (str)              : 
-        df (pyspark.sql.dataframe) :
+        status (bool)                      :
+        message (str)                      :
+        df (pyspark.sql.dataframe)         :
     """
     try:
         # read the mojo file from the provided model object
-        mojo = H2OMOJOPipelineModel.createFromMojo(os.path.join(*[absoluteCodePath, "model", mojoFile]))
+        mojo = H2OMOJOPipelineModel.createFromMojo(mojoFile)
         
-        # If all columns are to be selected from the passed dataframe
-        if selectionColumns is None:
-            _,_, df = getSparkFrameFromCSV(spark, os.path.join(*[absoluteCodePath, "inputs", scoringDataset]))
-        # in case certain columns are to be selected for transformation on mojo file
-        else:
-            _,_, df = getSparkFrameFromCSV(spark, os.path.join(*[absoluteCodePath, "inputs", scoringDataset]), selectionColumns)
+        finalFrame = mojo.transform(scoreFrame)
 
-        finalFrame = mojo.transform(df)
-
-        return True, "{} dataset scored against mojo file {}".format(scoringDataset, mojoFile), finalFrame
+        return True, "dataset scored against mojo file", finalFrame
     except Exception as e:
-        print("Error occured while scoring the mojo file {} on the provided dataset{}:\n{}".format(mojoFile, scoringDataset, e))
+        print("Error occured while scoring the mojo file {} on the provided dataset:\n{}".format(mojoFile, e))
         return False, e, None

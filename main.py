@@ -20,7 +20,7 @@ import ast
 import glob
 import argparse
 import configparser
-from bricks.sparkBrick import getSparkFrameFromCSV, mojoModelScoring
+from bricks.sparkBrick import getSparkFrameFromCSV, mojoModelScoring, pmmlModelScoring, pojoModelScoring, pickleModelScoring
 
 ######### Operational Functions
 myTitle = lambda x: "my" + x[0].title() + x[1:]
@@ -59,6 +59,30 @@ def createGlobalObject(objectName, objectValue):
     """
     globals()[objectName] = objectValue
 
+def modelFinder():
+    """
+    This function will return the type of model file present in the model folder
+
+    Syntax:
+        status, modelFileFormat = modelFinder()
+
+    Args:
+        None
+
+    Returns:
+        status (bool)         : True/False based on availability of model file
+        message (str)         : message explaining the status of function execution 
+        modelFile (str)       : name of model file found in the directory
+    """
+    fileList = os.listdir("./model/")
+    fileFormats = ['mojo', 'pickle', 'pmml', 'pojo', 'jar']
+    modelFile = [file for file in fileList if file.split('.')[-1] in fileFormats]
+
+    if len(modelFile) != 1:
+        print("Error! 0 or more than 1 model files present in the model directory")
+        return False, "Error! 0 or more than 1 model files present in the model directory", None
+    return True, "Model file found!", modelFile[0]
+
 def listParser(x):
     if x.isdigit():
         return int(x) 
@@ -90,8 +114,7 @@ if __name__ == "__main__":
     #change the below dictionary accordingly, update the config file accordingly
     argsDiction = \
         {
-            "modelParameters"  : [["mojoFile", "str"], ["pickleFile", "str"]],
-            "scoringParameters": [["targetColumn", "str"], ["columnSelection", "list"], ["datasetPath", "str"]]
+            "scoringParameters": [["columnSelection", "list"], ["datasetName", "str"]]
         }
     try:
         absoluteCodePath = os.path.split(os.path.realpath(__file__))[0]
@@ -147,11 +170,20 @@ if __name__ == "__main__":
     from pyspark.sql import SparkSession
     spark = SparkSession.builder.appName('DistributedScoring').master('local[*]').getOrCreate()
 
-    # TODO: Re place this env variable setup inside the mojo function
-    # TODO: Add functionality of target columns
     # driverless ai license setup for mojo file
     os.environ['DRIVERLESS_AI_LICENSE_FILE'] = os.path.join(absoluteCodePath,"license.sig")
+    
+    # If all columns are to be selected from the passed dataframe
     if myColumnSelection is None:
-        status, message, df = mojoModelScoring(spark, absoluteCodePath, myMojoFile, myDatasetPath)
+        _,_, scoreFrame = getSparkFrameFromCSV(spark, os.path.join(*[absoluteCodePath, "inputs", myDatasetName]))
+    # in case certain columns are to be selected for transformation on mojo file
     else:
-        status, message, df = mojoModelScoring(spark, absoluteCodePath, myMojoFile, myDatasetPath, myColumnSelection)
+        _,_, scoreFrame = getSparkFrameFromCSV(spark, os.path.join(*[absoluteCodePath, "inputs", myDatasetName]), myColumnSelection)
+
+    # Function to find model file
+    status, message, modelFile = modelFinder()
+    checkAndTerminate(status, message)
+    modelDiction = {'mojo': mojoModelScoring, 'pojo': pojoModelScoring, 'pickle': pickleModelScoring, 'pmmm': pmmlModelScoring}
+
+    # Calling the appropriate function to score the model according to the model file format found
+    status, message, df = modelDiction[modelFile.split('.')[-1]](spark, scoreFrame, os.path.join(*[absoluteCodePath, "model", modelFile]))
