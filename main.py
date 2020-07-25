@@ -20,6 +20,7 @@ import ast
 import glob
 import argparse
 import configparser
+from pyspark.sql import sparkSession
 from bricks.sparkBrick import getSparkFrameFromCSV, mojoModelScoring, pmmlModelScoring, pojoModelScoring, pickleModelScoring
 
 ######### Operational Functions
@@ -59,7 +60,7 @@ def createGlobalObject(objectName, objectValue):
     """
     globals()[objectName] = objectValue
 
-def modelFinder():
+def modelFinder(modelPath, supportedFormats):
     """
     This function will return the type of model file present in the model folder
 
@@ -74,14 +75,24 @@ def modelFinder():
         message (str)         : message explaining the status of function execution 
         modelFile (str)       : name of model file found in the directory
     """
-    fileList = os.listdir("./model/")
-    fileFormats = ['mojo', 'pickle', 'pmml', 'pojo', 'jar']
-    modelFile = [file for file in fileList if file.split('.')[-1] in fileFormats]
-
-    if len(modelFile) != 1:
-        print("Error! 0 or more than 1 model files present in the model directory")
-        return False, "Error! 0 or more than 1 model files present in the model directory", None
-    return True, "Model file found!", modelFile[0]
+    if not os.pathisdir(modelPath):
+        message = "Error! Specified mdoel path does not exist: " + modelPath
+        print("\n" + message + "\n")
+        return False, message, None, None
+    modelFile = list(filter(lambda x: x.split('.')[-1] in supportedFormats, os.listdir(modelPath)))
+    if modelFile:
+        if len(modelFile) == 1:
+            message = "Model file found!: " + modelFile[0]
+            print("\n" + message + "\n")
+            return True, message, modelFile[0].split(".")[-1], None
+        else:
+            message = "Error! 0 or more than 1 supported model files present in " + modelPath + ": "  + " ,".join(modelFile)
+            print("\n" + message + "\n")
+            return False, message, None, None
+    else :
+        message =  "Error! No supported model file formats found in " + modelPath
+        print("\n" + message + "\n")
+        return False, message, None, None
 
 def listParser(x):
     if x.isdigit():
@@ -95,7 +106,7 @@ def dataParse(x, y, z):
     try:
         return z(x)
     except:
-        checkAndTerminate(False, 'Argument ' + y + ' placed incorrectly  in config file')
+        checkAndTerminate(False, 'Argument ' + y + ' placed incorrectly  in inConfig file')
 
 generateList = lambda x, y: (list(map(listParser, x[1:-1].split(","))) if x[0]+x[-1] == '[]' else \
                     checkAndTerminate(False, "Argument "+ y + \
@@ -110,80 +121,78 @@ def tryExcept(x, y):
 
 if __name__ == "__main__":
     # Argument parsing using config file if not specified and final check of arguments
-    configFileName = "test_config.cfg"
+    inConfigFileName = "test_config.cfg"
     #change the below dictionary accordingly, update the config file accordingly
-    argsDiction = \
+    inArgsDiction = \
         {
-            "scoringParameters": [["columnSelection", "list"], ["datasetName", "str"]]
+            "mainAttributes": [["appName", "str"], ["datasetName", "str"]],
+            "scoringAttributes": [["columnSelection", "list"], ["columnOut", "list"]]
         }
+    # Main Arguments handling
     try:
-        absoluteCodePath = os.path.split(os.path.realpath(__file__))[0]
+        inAbsoluteCodePath = os.path.split(os.path.realpath(__file__))[0]
     except Exception as e:
-        absoluteCodePath = os.path.realpath(".")
-    configFile = os.path.join(absoluteCodePath, configFileName)
+        inAbsoluteCodePath = os.path.realpath(".")
+    inConfigFile = os.path.join(inAbsoluteCodePath, inConfigFileName)
     dataTypeDecode = {"str": "str", "int": "int", "bool": "bool", "list": "str", "float": "float"}
-    parser = argparse.ArgumentParser()
+    inParser = argparse.ArgumentParser()
     list(map(lambda x: list(
-        map(lambda y: eval("parser.add_argument('--" + y[0] + "', type=" + dataTypeDecode[y[1]] + \
+        map(lambda y: eval("inParser.add_argument('--" + y[0] + "', type=" + dataTypeDecode[y[1]] + \
                                                                         ", help='specify " + y[0] + "')"),
-            argsDiction[x])), argsDiction.keys())) is None
-    args = parser.parse_args()
-    if os.path.isfile(configFile):
-        config = configparser.ConfigParser()
-        config.read(configFile)
-        parameterTypeParsersConf = {"str": lambda x, y: (lambda x: None if x == '' else x)(config.get(x, y).strip()),
-                                    "bool": lambda x, y: (lambda x, y: bool(1) if x == "True" else \
-                                                    bool(0) if x == "False" else None if x == '' else \
-                                                    checkAndTerminate(False, "Argument " + y + \
-                                                        " not correctly placed, \
-                                                         can be left blank or acceptable case-sensitive values are \
-                                                         'True' and 'False'"))(config.get(x, y).strip(), y),
-                                    "int": lambda x, y: (lambda x, y: None if x == '' else \
-                                                    dataParse(x, y, int))(config.get(x, y).strip(), y),
-                                    "float": lambda x, y: (lambda x, y: None if x == '' else \
-                                                    dataParse(x, y, float))(config.get(x, y).strip(), y),
-                                    "list": lambda x, y: tryExcept(lambda: generateList((lambda x: None if x == '' else x) \
-                                                            (config.get(x, y).strip()), y),
+            inArgsDiction[x])), inArgsDiction.keys())) is None
+    inParseArgs = inParser.parse_args()
+    if os.path.isfile(inConfigFile):
+        inConfig = configparser.ConfigParser()
+        inConfig.read(inConfigFile)
+        inParameterTypeParsersConf = {"str": lambda x, y: (lambda x: None if x == '' else x)(inConfig.get(x, y).strip()),
+                                      "bool": lambda x, y: (lambda x, y: bool(1) if x == "True" else \
+                                                      bool(0) if x == "False" else None if x == '' else \
+                                                      checkAndTerminate(False, "Argument " + y + \
+                                                          " not correctly placed, \
+                                                           can be left blank or acceptable case-sensitive values are \
+                                                           'True' and 'False'"))(inConfig.get(x, y).strip(), y),
+                                      "int": lambda x, y: (lambda x, y: None if x == '' else \
+                                                      dataParse(x, y, int))(inConfig.get(x, y).strip(), y),
+                                      "float": lambda x, y: (lambda x, y: None if x == '' else \
+                                                      dataParse(x, y, float))(inConfig.get(x, y).strip(), y),
+                                      "list": lambda x, y: tryExcept(lambda: generateList((lambda x: None if x == '' else x) \
+                                                            (inConfig.get(x, y).strip()), y),
                                                             lambda: checkAndTerminate(False, 
                                                                 "Argument "+ y + " not correctly placed in config file"))}
-        parameterTypeParsersArg = {"str": lambda x, y: x,
-                                   "bool": lambda x, y: x,
-                                   "int": lambda x, y: x,
-                                   "float": lambda x, y: x,
-                                   "list": lambda x, y: tryExcept(lambda: generateList(x.strip(), y), 
+        inParameterTypeParsersArg = {"str": lambda x, y: x,
+                                     "bool": lambda x, y: x,
+                                     "int": lambda x, y: x,
+                                     "float": lambda x, y: x,
+                                     "list": lambda x, y: tryExcept(lambda: generateList(x.strip(), y), 
                                                                    lambda: checkAndTerminate(False, 
                                                                     "Argument "+ y + " not correctly parsed"))}
-        getConfig = lambda p, q, r: (lambda x, y: y if x is None else parameterTypeParsersArg[p](x, r))(eval("args." + r),
-                                                                         parameterTypeParsersConf[p](q, r))
-        list(map(lambda x: list(map(lambda y: createGlobalObject(myTitle(y[0]), getConfig(y[1], x, y[0])), argsDiction[x])),
-                argsDiction.keys())) is None
+        inGetConfig = lambda p, q, r: (lambda x, y: y if x is None else inParameterTypeParsersArg[p](x, r))(eval("inParseArgs." + r),
+                                                                         inParameterTypeParsersConf[p](q, r))
+        list(map(lambda x: list(map(lambda y: createGlobalObject(myTitle(y[0]), inGetConfig(y[1], x, y[0])), inArgsDiction[x])),
+                inArgsDiction.keys())) is None
     else:
         print("Warning: Config file not present")
-        getConfig = lambda p, q, r: eval("args." + r)
-        list(map(lambda x: list(map(lambda y: createGlobalObject(myTitle(y[0]), getConfig(y[1], x, y[0])), argsDiction[x])),
-                argsDiction.keys())) is None
+        inGetConfig = lambda p, q, r: eval("inParseArgs." + r)
+        list(map(lambda x: list(map(lambda y: createGlobalObject(myTitle(y[0]), inGetConfig(y[1], x, y[0])), inArgsDiction[x])),
+                inArgsDiction.keys())) is None
         list(map(lambda x: list(
-            map(lambda y: checkAndTerminate(eval(myTitle(y[0])) is not None, y[0] + " is not specified"), argsDiction[x])),
-                argsDiction.keys())) is None
+            map(lambda y: checkAndTerminate(eval(myTitle(y[0])) is not None, y[0] + " is not specified"), inArgsDiction[x])),
+                inArgsDiction.keys())) is None
     
-    # Initialising spark
-    from pyspark.sql import SparkSession
-    spark = SparkSession.builder.appName('DistributedScoring').master('local[*]').getOrCreate()
+    inModelDiction = {'mojo': mojoModelScoring, 'pojo': pojoModelScoring, 'pickle': pickleModelScoring, 'pmml': pmmlModelScoring}
 
-    # driverless ai license setup for mojo file
-    os.environ['DRIVERLESS_AI_LICENSE_FILE'] = os.path.join(absoluteCodePath,"license.sig")
+    # Looking for model file
+    inStatus, inMessage, modelType, modelFile = modelFinder(os.path.join(inAbsoluteCodePath, model), inModelDiction.keys())
+    checkAndTerminate(inStatus, inMessage)
+
+    # Initialising spark    
+    inSpark = SparkSession.builder.appName(myAppName).getOrCreate()
+    _,_, inScoreFrame = getSparkFrameFromCSV(inSpark, os.path.join(inAbsoluteCodePath, "inputs", myDatasetName))
     
-    # If all columns are to be selected from the passed dataframe
-    if myColumnSelection is None:
-        _,_, scoreFrame = getSparkFrameFromCSV(spark, os.path.join(*[absoluteCodePath, "inputs", myDatasetName]))
-    # in case certain columns are to be selected for transformation on mojo file
-    else:
-        _,_, scoreFrame = getSparkFrameFromCSV(spark, os.path.join(*[absoluteCodePath, "inputs", myDatasetName]), myColumnSelection)
-
-    # Function to find model file
-    status, message, modelFile = modelFinder()
-    checkAndTerminate(status, message)
-    modelDiction = {'mojo': mojoModelScoring, 'pojo': pojoModelScoring, 'pickle': pickleModelScoring, 'pmmm': pmmlModelScoring}
-
     # Calling the appropriate function to score the model according to the model file format found
-    status, message, df = modelDiction[modelFile.split('.')[-1]](spark, scoreFrame, os.path.join(*[absoluteCodePath, "model", modelFile]))
+    inStatus, inMessage, df = inModelDiction[modelType](inSpark, inScoreFrame, os.path.join(inAbsoluteCodePath, "model", modelFile), 
+                                            myColumnSelection, myColumnOut)
+    try:
+        get_ipython().__class__.__name__ is None
+    except Exception as e:
+        inSpark.stop()

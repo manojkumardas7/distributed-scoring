@@ -24,7 +24,7 @@ from pysparkling.ml import H2OMOJOPipelineModel
 # final = mojo.transform(df).select(df.columns + [col("prediction.*")]).select(df.columns + [col("`Label.b`").\
 #     alias("pb"), col("`Label.s`").alias("ps")]).withColumn("prediction", labelGenerator("ps").cast(IntegerType()))
 
-def getSparkFrameFromCSV(spark, datasetPath, columnIndexList=None):
+def getSparkFrameFromCSV(spark, datasetPath, selectionColumns=None):
     """
     This function returns a spark dataframe from the provided csv file path
     
@@ -34,6 +34,7 @@ def getSparkFrameFromCSV(spark, datasetPath, columnIndexList=None):
     Args:
         spark (spark context)      : spark context
         datasetPath (str)          : path of csv file to be converted to spark dataframe
+        selectionColumns (list)    : list of column nemes that should be only present in the return dataframe (default value: None)
     
     Returns:
         status (bool)              : True or False depending on state of data read  
@@ -44,24 +45,10 @@ def getSparkFrameFromCSV(spark, datasetPath, columnIndexList=None):
         df = spark.read.format("csv").option("header", "true").option("inferschema", "true").load(datasetPath)
         
         # If all columns are to be selected, return
-        if columnIndexList is None:
-            return True, "Dataset read into spark dataframe successfully", df    
-        
-        # In case column index list is provided in config
-        # Dictionary to map index to column names
-        indexToColumnMap = dict(zip(list(range(0, len(df.columns))), df.columns))
-        columnList = []
-
-        # Adding mapped column names to those indices
-        for i, j in indexToColumnMap.items(): 
-            if i in columnIndexList: 
-                columnList.append(j)
-        df.createOrReplaceTempView("df_vw")
-        
-        # query to select just those columns
-        subsetDf = spark.sql("select {} from df_vw".format(','.join(columnList)))
-
-        return True, "Dataset read into spark dataframe successfully", subsetDf
+        if selectionColumns:
+            return True, "Dataset read into spark dataframe successfully", df.select(*selectionColumns)
+        else:
+            return True, "Dataset read into spark dataframe successfully", df
     except Exception as e:
         print("Error encountered in reading csv file.\n", e)
         return False, e, None
@@ -81,7 +68,7 @@ def pojoModelScoring(spark, scoreFrame, pojoFile):
     """
     pass
 
-def mojoModelScoring(spark, scoreFrame, mojoFile):
+def mojoModelScoring(spark, scoreFrame, mojoFile, selectionColumns=None, outColumns=None):
     """
     Performs scoring on the dataset provided against the mojo file passed to this scoring function
 
@@ -92,7 +79,8 @@ def mojoModelScoring(spark, scoreFrame, mojoFile):
         spark (spark context)              : spark context
         mojoFile (model object)            : model object to be used for scoring
         scoreFrame (pyspark.sql.dataframe) : dataframe to be scored against
-    
+        selectionColumns (list)            : list of column names that should be considered to model, when set to None, all columsn are
+                                                considered (Default: None)    
     Returns: 
         status (bool)                      :
         message (str)                      :
@@ -101,9 +89,10 @@ def mojoModelScoring(spark, scoreFrame, mojoFile):
     try:
         # read the mojo file from the provided model object
         mojo = H2OMOJOPipelineModel.createFromMojo(mojoFile)
-        
-        finalFrame = mojo.transform(scoreFrame)
-
+        if selectionColumns:
+            finalFrame = mojo.transform(scoreFrame.select(*selectionColumns))
+        else:
+            finalFrame = mojo.transform(scoreFrame)
         return True, "dataset scored against mojo file", finalFrame
     except Exception as e:
         print("Error occured while scoring the mojo file {} on the provided dataset:\n{}".format(mojoFile, e))
