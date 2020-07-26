@@ -1,7 +1,7 @@
 '''
 # ================================================================================#
 #-- Authors: Manoj Kumar Das(manojkumardas7@gmail.com), Akshit Gattani(gattani.akshit@gmail.com)
-#-- Date: July 11, 2020
+#-- Date: July 27, 2020
 #-- Description: Main file to the distributed-scoring utility
 #-- Version : 3.0
 #-- Revisions: None
@@ -24,7 +24,7 @@ import configparser
 import pandas as pd
 from functools import reduce
 from pyspark.sql import SparkSession
-# from bricks.sparkBrick import getSparkFrameFromCSV, mojoModelScoring, pmmlModelScoring, pojoModelScoring, pickleModelScoring
+from bricks.utils import modelFileFinder
 
 ######### Operational Functions
 myTitle = lambda x: "my" + x[0].title() + x[1:]
@@ -62,40 +62,6 @@ def createGlobalObject(objectName, objectValue):
         objectValue (any) : data or object of any type the object should have 
     """
     globals()[objectName] = objectValue
-
-def modelFinder(modelPath, supportedFormats):
-    """
-    This function will return the type of model file present in the model folder
-
-    Syntax:
-        status, modelFileFormat = modelFinder()
-
-    Args:
-        None
-
-    Returns:
-        status (bool)         : True/False based on availability of model file
-        message (str)         : message explaining the status of function execution 
-        modelFile (str)       : name of model file found in the directory
-    """
-    if not os.path.isdir(modelPath):
-        message = "Error! Specified mdoel path does not exist: " + modelPath
-        print("\n" + message + "\n")
-        return False, message, None, None
-    modelFile = list(filter(lambda x: x.split('.')[-1] in supportedFormats, os.listdir(modelPath)))
-    if modelFile:
-        if len(modelFile) == 1:
-            message = "Model file found!: " + modelFile[0]
-            print("\n" + message + "\n")
-            return True, message, modelFile[0].split(".")[-1], None
-        else:
-            message = "Error! 0 or more than 1 supported model files present in " + modelPath + ": "  + " ,".join(modelFile)
-            print("\n" + message + "\n")
-            return False, message, None, None
-    else :
-        message =  "Error! No supported model file formats found in " + modelPath
-        print("\n" + message + "\n")
-        return False, message, None, None
 
 def listParser(x):
     if x.isdigit():
@@ -214,18 +180,21 @@ if __name__ == "__main__":
         list(map(lambda x: list(map(lambda y: createGlobalObject(myTitle(y[0]), inGetConfig(y[1], x, y[0])), inArgsDiction[x])),
                 inArgsDiction.keys())) is None
 
-    inModelDiction = {'mojo': "fiwhfw", 'pojo': "fiwhfw", 'pickle': "fiwhfw", 'pmml': "fiwhfw"}
-        # inModelDiction = {'mojo': mojoModelScoring, 'pojo': pojoModelScoring, 'pickle': pickleModelScoring, 'pmml': pmmlModelScoring}    
-
     # Looking for model file
-    inStatus, inMessage, modelType, modelFile = modelFinder(os.path.join(inAbsoluteCodePath, "model"), inModelDiction.keys())
+    # inModelDiction = {'mojo': 'mojoModelScoring', 'pojo': 'pojoModelScoring', 'pickle': 'pickleModelScoring', 'pmml': 'pmmlModelScoring'}
+    inModelDiction = {'mojo': 'mojoModelScoring'}
+    inStatus, inMessage, modelType, modelFile = modelFileFinder(os.path.join(inAbsoluteCodePath, "model"), inModelDiction.keys())
     checkAndTerminate(inStatus, inMessage)
     inQueryFrame = inQueryFrame.apply(lambda n: reduce(lambda x, y: x.replace(y[0], y[1]), [n] + \
                     list(map(lambda x: (x, eval(x)), inPipelineArgs.index))))
     
     # Initialising spark    
     inSpark = SparkSession.builder.appName(myAppName).getOrCreate()
-    
+    inSpark.sparkContext.addPyFile(os.path.join(inAbsoluteCodePath, "codeZips", "h2o_pysparkling_2.4-3.30.0.3-1-2.4.zip"))
+    # from bricks.sparkBrick import getSparkFrameFromCSV, mojoModelScoring, pmmlModelScoring, pojoModelScoring, pickleModelScoring
+    from bricks.sparkBrick import getSparkFrameFromCSV, mojoModelScoring
+    inModelDiction = dict(zip(inModelDiction.keys(), list(map(lambda x: eval(inModelDiction[x]), inModelDiction.keys()))))
+
     # Running Data preperation queries to get feature data
     for query in inQueryFrame.iloc[:-1]:
         print(query)
