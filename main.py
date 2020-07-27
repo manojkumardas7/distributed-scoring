@@ -102,7 +102,7 @@ if __name__ == "__main__":
     inConfigFile = os.path.join(inAbsoluteCodePath, inConfigFileName)
     inPipelineArgsFile = os.path.join(inAbsoluteCodePath, inPipelineArgsFileName)
     inQueryFile = os.path.join(inAbsoluteCodePath, inQueryFileName)
-    inRegulerExpression = r"\b[a-z]+\b"
+    inRegulerExpression = (r"\b[a-z][a-z-_0-9]+\b"
     #change the below dictionary accordingly, update the config file accordingly
     inArgsDiction = \
         {
