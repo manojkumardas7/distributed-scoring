@@ -102,7 +102,7 @@ if __name__ == "__main__":
     inConfigFile = os.path.join(inAbsoluteCodePath, inConfigFileName)
     inPipelineArgsFile = os.path.join(inAbsoluteCodePath, inPipelineArgsFileName)
     inQueryFile = os.path.join(inAbsoluteCodePath, inQueryFileName)
-    
+    inRegulerExpression = r"\b[a-z]+\b"
     #change the below dictionary accordingly, update the config file accordingly
     inArgsDiction = \
         {
@@ -117,9 +117,9 @@ if __name__ == "__main__":
                 inPipelineArgsFile + " contains duplicates: " + \
                 ", ".join((lambda y: set([x for x in y if y.count(x) > 1]))(list(inPipelineArgs.index))))
     inQueryFrame = pd.read_csv(inQueryFile, header=None).iloc[:, 0]
-    if set(inQueryFrame.apply(lambda x:  re.findall(r"(\b(?:[a-z]+)\b(?:\s+(?:[A-Z]+[a-z]?[A-Z]*|[A-Z]*[a-z]?[A-Z]+)\b)*)", x)).sum()) - set(inPipelineArgs.index):
+    if set(inQueryFrame.apply(lambda x:  re.findall(inRegulerExpression, x)).sum()) - set(inPipelineArgs.index):
         checkAndTerminate(False, "\n" + \
-            ", ".join(set(inQueryFrame.apply(lambda x:  re.findall(r"(\b(?:[a-z]+)\b(?:\s+(?:[A-Z]+[a-z]?[A-Z]*|[A-Z]*[a-z]?[A-Z]+)\b)*)", x)).sum()) - \
+            ", ".join(set(inQueryFrame.apply(lambda x:  re.findall(inRegulerExpression, x)).sum()) - \
             set(inPipelineArgs.index)) + " are not present in the pipeline arguments file: " + inPipelineArgsFile + "\n")
     if set(inPipelineArgs.index) - set(inQueryFrame.apply(lambda x:  re.findall(r"(\b(?:[a-z]+)\b(?:\s+(?:[A-Z]+[a-z]?[A-Z]*|[A-Z]*[a-z]?[A-Z]+)\b)*)", x)).sum()):
         print("Warning: " + \
