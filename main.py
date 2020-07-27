@@ -102,7 +102,7 @@ if __name__ == "__main__":
     inConfigFile = os.path.join(inAbsoluteCodePath, inConfigFileName)
     inPipelineArgsFile = os.path.join(inAbsoluteCodePath, inPipelineArgsFileName)
     inQueryFile = os.path.join(inAbsoluteCodePath, inQueryFileName)
-    inRegulerExpression = (r"\b[a-z][a-z-_0-9]+\b"
+    inRegulerExpression = r"\b[a-z][a-z-_0-9]+\b"
     #change the below dictionary accordingly, update the config file accordingly
     inArgsDiction = \
         {
@@ -121,9 +121,9 @@ if __name__ == "__main__":
         checkAndTerminate(False, "\n" + \
             ", ".join(set(inQueryFrame.apply(lambda x:  re.findall(inRegulerExpression, x)).sum()) - \
             set(inPipelineArgs.index)) + " are not present in the pipeline arguments file: " + inPipelineArgsFile + "\n")
-    if set(inPipelineArgs.index) - set(inQueryFrame.apply(lambda x:  re.findall(r"(\b(?:[a-z]+)\b(?:\s+(?:[A-Z]+[a-z]?[A-Z]*|[A-Z]*[a-z]?[A-Z]+)\b)*)", x)).sum()):
+    if set(inPipelineArgs.index) - set(inQueryFrame.apply(lambda x:  re.findall(inRegulerExpression, x)).sum()):
         print("Warning: " + \
-            ", ".join(set(inPipelineArgs.index) - set(inQueryFrame.apply(lambda x:  re.findall(r"(\b(?:[a-z]+)\b(?:\s+(?:[A-Z]+[a-z]?[A-Z]*|[A-Z]*[a-z]?[A-Z]+)\b)*)", x)).sum())) + \
+            ", ".join(set(inPipelineArgs.index) - set(inQueryFrame.apply(lambda x:  re.findall(inRegulerExpression, x)).sum())) + \
             " are not used in query file: " + inQueryFileName)
     # Main Arguments handling
     dataTypeDecode = {"str": "str", "int": "int", "bool": "bool", "list": "str", "float": "float"}
