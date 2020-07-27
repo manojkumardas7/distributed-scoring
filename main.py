@@ -139,11 +139,11 @@ if __name__ == "__main__":
                                                                         ", help='specify " + y[0] + "')"),
             inArgsDiction[x])), inArgsDiction.keys())) is None
     inParseArgs = inParser.parse_args()
-    inParameterTypeParsersArg = {"str": lambda x, y: x,
-                             "bool": lambda x, y: x,
-                             "int": lambda x, y: x,
-                             "float": lambda x, y: x,
-                             "list": lambda x, y: tryExcept(lambda: generateList(x.strip(), y), 
+    inParameterTypeParsersArg = {"str"  : lambda x, y: x,
+                                 "bool" : lambda x, y: x,
+                                 "int"  : lambda x, y: x,
+                                 "float": lambda x, y: x,
+                                 "list" : lambda x, y: tryExcept(lambda: generateList(x.strip(), y), 
                                                            lambda: checkAndTerminate(False, 
                                                             "Argument "+ y + " not correctly parsed"))}
     inGetConfig = lambda p, r: (lambda x: None if x is None else inParameterTypeParsersArg[p](x, r))(eval("inParseArgs." + r))
@@ -160,18 +160,18 @@ if __name__ == "__main__":
     else:
         inConfig = configparser.ConfigParser()
         inConfig.read(inConfigFile)
-        inParameterTypeParsersConf = {"str": lambda x, y: (lambda x: None if x == '' else x)(inConfig.get(x, y).strip()),
-                                      "bool": lambda x, y: (lambda x, y: bool(1) if x == "True" else \
+        inParameterTypeParsersConf = {"str"  : lambda x, y: (lambda x: None if x == '' else x)(inConfig.get(x, y).strip()),
+                                      "bool" : lambda x, y: (lambda x, y: bool(1) if x == "True" else \
                                                       bool(0) if x == "False" else None if x == '' else \
                                                       checkAndTerminate(False, "Argument " + y + \
                                                           " not correctly placed, \
                                                            can be left blank or acceptable case-sensitive values are \
                                                            'True' and 'False'"))(inConfig.get(x, y).strip(), y),
-                                      "int": lambda x, y: (lambda x, y: None if x == '' else \
+                                      "int"  : lambda x, y: (lambda x, y: None if x == '' else \
                                                       dataParse(x, y, int))(inConfig.get(x, y).strip(), y),
                                       "float": lambda x, y: (lambda x, y: None if x == '' else \
                                                       dataParse(x, y, float))(inConfig.get(x, y).strip(), y),
-                                      "list": lambda x, y: tryExcept(lambda: generateList((lambda x: None if x == '' else x) \
+                                      "list" : lambda x, y: tryExcept(lambda: generateList((lambda x: None if x == '' else x) \
                                                             (inConfig.get(x, y).strip()), y),
                                                             lambda: checkAndTerminate(False, 
                                                                 "Argument "+ y + " not correctly placed in config file"))}
