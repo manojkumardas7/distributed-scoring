@@ -18,7 +18,6 @@
 import os
 from pyspark.sql.types import BooleanType, IntegerType
 # from pyspark.sql.functions import col
-from pysparkling.ml import H2OMOJOPipelineModel
 
 # labelGenerator = udf(lambda x:  x > 0.5, BooleanType())
 # mojo = H2OMOJOPipelineModel.createFromMojo(os.path.join(*[absoluteCodePath, "model", "pipeline.mojo"]))
@@ -60,10 +59,37 @@ def pickleModelScoring(spark, scoreFrame, pojoFile):
     """
     pass
 
-def pmmlModelScoring(spark, scoreFrame, pmmlFile):
+def pmmlModelScoring(spark, scoreFrame, pmmlFile, selectionColumns=None, outColumns=None):
     """
+    Performs scoring on the dataset provided against the mojo file passed to this scoring function
+
+    Syntax:
+        status, message, df = mojoModelScoring(spark, scoreFrame, mojoFile)
+    
+    Args:
+        spark (spark context)              : spark context
+        pmmlFile (model object)            : model object to be used for scoring
+        scoreFrame (pyspark.sql.dataframe) : dataframe to be scored against
+        selectionColumns (list)            : list of column names that should be considered to model, when set to None, all columsn are
+                                                considered (Default: None)    
+    Returns: 
+        status (bool)                      :
+        message (str)                      :
+        df (pyspark.sql.dataframe)         :
     """
-    pass
+    from pypmml_spark import ScoreModel
+    
+    try:
+        # read the mojo file from the provided model object
+        pmml = ScoreModel.fromFile(pmmlFile)
+        if selectionColumns:
+            finalFrame = pmml.transform(scoreFrame.select(*selectionColumns))
+        else:
+            finalFrame = pmml.transform(scoreFrame)
+        return True, "Dataset scored against pmml file", finalFrame
+    except Exception as e:
+        print("Error occured while scoring the pmml file {} on the provided dataset:\n{}".format(pmmlFile, e))
+        return False, e, None
 
 def pojoModelScoring(spark, scoreFrame, pojoFile):
     """
@@ -88,6 +114,8 @@ def mojoModelScoring(spark, scoreFrame, mojoFile, selectionColumns=None, outColu
         message (str)                      :
         df (pyspark.sql.dataframe)         :
     """
+    from pysparkling.ml import H2OMOJOPipelineModel
+
     try:
         # read the mojo file from the provided model object
         mojo = H2OMOJOPipelineModel.createFromMojo(mojoFile)
