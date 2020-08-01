@@ -195,7 +195,7 @@ if __name__ == "__main__":
     inLogger.setLevel(inLog4jLogger.Level.WARN)
     inLogger.warn("spark session initialized")
 
-    inClusterResource = (lambda x: x[0] if x else None)(glob.glob(os.path.join(inAbsoluteCodePath, "codeZips")))
+    inClusterResource = (lambda x: x[0] if x else None)(glob.glob(os.path.join(inAbsoluteCodePath, "codeZips", "*")))
 
     # from bricks.sparkBrick import getSparkFrameFromCSV, mojoModelScoring, pmmlModelScoring, pojoModelScoring, pickleModelScoring
     from bricks.sparkBrick import getSparkFrameFromCSV, mojoModelScoring
