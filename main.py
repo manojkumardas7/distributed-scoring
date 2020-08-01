@@ -195,8 +195,7 @@ if __name__ == "__main__":
     inLogger.setLevel(inLog4jLogger.Level.WARN)
     inLogger.warn("spark session initialized")
 
-
-    inSpark.sparkContext.addPyFile(os.path.join(inAbsoluteCodePath, "codeZips", "h2o_pysparkling_2.4-3.30.0.3-1-2.4.zip"))
+    inClusterResource = (lambda x: x[0] if x else None)(glob.glob(os.path.join(inAbsoluteCodePath, "codeZips")))
 
     # from bricks.sparkBrick import getSparkFrameFromCSV, mojoModelScoring, pmmlModelScoring, pojoModelScoring, pickleModelScoring
     from bricks.sparkBrick import getSparkFrameFromCSV, mojoModelScoring
@@ -214,7 +213,7 @@ if __name__ == "__main__":
     
     # Calling the appropriate function to score the model according to the model file format found
     inStatus, inMessage, inOutputFrame = inModelDiction[modelType](inSpark, inScoreFrame, os.path.join(inAbsoluteCodePath, "model", modelFile), 
-                                            myColumnSelection, myColumnOut)
+                                            myColumnSelection, myColumnOut, inClusterResource)
     try:
         get_ipython().__class__.__name__ is None
     except Exception as e:
