@@ -214,6 +214,8 @@ if __name__ == "__main__":
     # Calling the appropriate function to score the model according to the model file format found
     inStatus, inMessage, inOutputFrame = inModelDiction[modelType](inSpark, inScoreFrame, os.path.join(inAbsoluteCodePath, "model", modelFile), 
                                             myColumnSelection, myColumnOut, inClusterResource)
+    if inStatus:
+        inOutputFrame.show()
     try:
         get_ipython().__class__.__name__ is None
     except Exception as e:
