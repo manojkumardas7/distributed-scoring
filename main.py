@@ -190,7 +190,14 @@ if __name__ == "__main__":
     
     # Initialising spark    
     inSpark = SparkSession.builder.appName(myAppName).getOrCreate()
+    inLog4jLogger = inSpark.sparkContext._jvm.org.apache.log4j
+    inLogger = inLog4jLogger.LogManager.getLogger('mylogger')
+    inLogger.setLevel(inLog4jLogger.Level.WARN)
+    inLogger.warn("spark session initialized")
+
+
     inSpark.sparkContext.addPyFile(os.path.join(inAbsoluteCodePath, "codeZips", "h2o_pysparkling_2.4-3.30.0.3-1-2.4.zip"))
+
     # from bricks.sparkBrick import getSparkFrameFromCSV, mojoModelScoring, pmmlModelScoring, pojoModelScoring, pickleModelScoring
     from bricks.sparkBrick import getSparkFrameFromCSV, mojoModelScoring
     inModelDiction = dict(zip(inModelDiction.keys(), list(map(lambda x: eval(inModelDiction[x]), inModelDiction.keys()))))
