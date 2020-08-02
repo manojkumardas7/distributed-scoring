@@ -17,7 +17,7 @@
 # Library imports
 import os
 from pyspark.sql.types import BooleanType, IntegerType
-# from pyspark.sql.functions import col
+from pyspark.sql.functions import col
 
 # labelGenerator = udf(lambda x:  x > 0.5, BooleanType())
 # mojo = H2OMOJOPipelineModel.createFromMojo(os.path.join(*[absoluteCodePath, "model", "pipeline.mojo"]))
