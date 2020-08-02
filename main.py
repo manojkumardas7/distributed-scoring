@@ -26,7 +26,7 @@ from functools import reduce
 from pyspark.sql import SparkSession
 from bricks.utils import modelFileFinder
 
-######### Operational Functions
+########## Operational Functions
 myTitle = lambda x: "my" + x[0].title() + x[1:]
 
 def checkAndTerminate(checkValue, message, sparkSession=None):
