@@ -84,8 +84,12 @@ def pmmlModelScoring(sparkSession, scoreFrame, pmmlFile, selectionColumns=None, 
         pmml = ScoreModel.fromFile(pmmlFile)
         if selectionColumns:
             finalFrame = pmml.transform(scoreFrame.select(*selectionColumns))
+            colDiction = dict(zip(selectionColumns, outColumns))
+            finalFrame = finalFrame.select([col(c).alias(c_new) for c, c_new in colDiction.items()])
         else:
             finalFrame = pmml.transform(scoreFrame)
+            colDiction = dict(zip(finalFrame.columns, outColumns))
+            finalFrame = finalFrame.select([col(c).alias(c_new) for c, c_new in colDiction.items()])            
         return True, "Dataset scored against pmml file", finalFrame
     except Exception as e:
         print("Error occured while scoring the pmml file {} on the provided dataset:\n{}".format(pmmlFile, e))
@@ -123,8 +127,12 @@ def mojoModelScoring(sparkSession, scoreFrame, mojoFile, selectionColumns=None, 
         mojo = H2OMOJOPipelineModel.createFromMojo(mojoFile)
         if selectionColumns:
             finalFrame = mojo.transform(scoreFrame.select(*selectionColumns))
+            colDiction = dict(zip(selectionColumns, outColumns))
+            finalFrame = finalFrame.select([col(c).alias(c_new) for c, c_new in colDiction.items()])
         else:
             finalFrame = mojo.transform(scoreFrame)
+            colDiction = dict(zip(finalFrame.columns, outColumns))
+            finalFrame = finalFrame.select([col(c).alias(c_new) for c, c_new in colDiction.items()])
         return True, "dataset scored against mojo file", finalFrame
     except Exception as e:
         print("Error occured while scoring the mojo file {} on the provided dataset:\n{}".format(mojoFile, e))
