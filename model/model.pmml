@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<PMML xmlns="http://www.dmg.org/PMML-4_4" xmlns:data="http://jpmml.org/jpmml-model/InlineTable" version="4.3">
+	<Header>
+		<Application name="JPMML-SkLearn" version="1.6.4"/>
+		<Timestamp>2020-08-02T03:59:58Z</Timestamp>
+	</Header>
+	<MiningBuildTask>
+		<Extension>PMMLPipeline(steps=[('classifier', LogisticRegression(multi_class='ovr'))])</Extension>
+	</MiningBuildTask>
+	<DataDictionary>
+		<DataField name="Label" optype="categorical" dataType="string">
+			<Value value="b"/>
+			<Value value="s"/>
+		</DataField>
+		<DataField name="DER_deltaeta_jet_jet" optype="continuous" dataType="double"/>
+		<DataField name="DER_deltar_tau_lep" optype="continuous" dataType="double"/>
+		<DataField name="DER_lep_eta_centrality" optype="continuous" dataType="double"/>
+		<DataField name="DER_mass_MMC" optype="continuous" dataType="double"/>
+		<DataField name="DER_mass_jet_jet" optype="continuous" dataType="double"/>
+		<DataField name="DER_mass_transverse_met_lep" optype="continuous" dataType="double"/>
+		<DataField name="DER_mass_vis" optype="continuous" dataType="double"/>
+		<DataField name="DER_met_phi_centrality" optype="continuous" dataType="double"/>
+		<DataField name="DER_prodeta_jet_jet" optype="continuous" dataType="double"/>
+		<DataField name="DER_pt_h" optype="continuous" dataType="double"/>
+		<DataField name="DER_pt_ratio_lep_tau" optype="continuous" dataType="double"/>
+		<DataField name="DER_pt_tot" optype="continuous" dataType="double"/>
+		<DataField name="DER_sum_pt" optype="continuous" dataType="double"/>
+		<DataField name="EventId" optype="continuous" dataType="double"/>
+		<DataField name="PRI_jet_all_pt" optype="continuous" dataType="double"/>
+		<DataField name="PRI_jet_leading_eta" optype="continuous" dataType="double"/>
+		<DataField name="PRI_jet_leading_phi" optype="continuous" dataType="double"/>
+		<DataField name="PRI_jet_leading_pt" optype="continuous" dataType="double"/>
+		<DataField name="PRI_jet_num" optype="continuous" dataType="double"/>
+		<DataField name="PRI_jet_subleading_eta" optype="continuous" dataType="double"/>
+		<DataField name="PRI_jet_subleading_phi" optype="continuous" dataType="double"/>
+		<DataField name="PRI_jet_subleading_pt" optype="continuous" dataType="double"/>
+		<DataField name="PRI_lep_eta" optype="continuous" dataType="double"/>
+		<DataField name="PRI_lep_phi" optype="continuous" dataType="double"/>
+		<DataField name="PRI_lep_pt" optype="continuous" dataType="double"/>
+		<DataField name="PRI_met" optype="continuous" dataType="double"/>
+		<DataField name="PRI_met_phi" optype="continuous" dataType="double"/>
+		<DataField name="PRI_met_sumet" optype="continuous" dataType="double"/>
+		<DataField name="PRI_tau_eta" optype="continuous" dataType="double"/>
+		<DataField name="PRI_tau_phi" optype="continuous" dataType="double"/>
+		<DataField name="PRI_tau_pt" optype="continuous" dataType="double"/>
+		<DataField name="Weight" optype="continuous" dataType="double"/>
+	</DataDictionary>
+	<RegressionModel functionName="classification" normalizationMethod="logit">
+		<MiningSchema>
+			<MiningField name="Label" usageType="target"/>
+			<MiningField name="DER_deltaeta_jet_jet"/>
+			<MiningField name="DER_deltar_tau_lep"/>
+			<MiningField name="DER_lep_eta_centrality"/>
+			<MiningField name="DER_mass_MMC"/>
+			<MiningField name="DER_mass_jet_jet"/>
+			<MiningField name="DER_mass_transverse_met_lep"/>
+			<MiningField name="DER_mass_vis"/>
+			<MiningField name="DER_met_phi_centrality"/>
+			<MiningField name="DER_prodeta_jet_jet"/>
+			<MiningField name="DER_pt_h"/>
+			<MiningField name="DER_pt_ratio_lep_tau"/>
+			<MiningField name="DER_pt_tot"/>
+			<MiningField name="DER_sum_pt"/>
+			<MiningField name="EventId"/>
+			<MiningField name="PRI_jet_all_pt"/>
+			<MiningField name="PRI_jet_leading_eta"/>
+			<MiningField name="PRI_jet_leading_phi"/>
+			<MiningField name="PRI_jet_leading_pt"/>
+			<MiningField name="PRI_jet_num"/>
+			<MiningField name="PRI_jet_subleading_eta"/>
+			<MiningField name="PRI_jet_subleading_phi"/>
+			<MiningField name="PRI_jet_subleading_pt"/>
+			<MiningField name="PRI_lep_eta"/>
+			<MiningField name="PRI_lep_phi"/>
+			<MiningField name="PRI_lep_pt"/>
+			<MiningField name="PRI_met"/>
+			<MiningField name="PRI_met_phi"/>
+			<MiningField name="PRI_met_sumet"/>
+			<MiningField name="PRI_tau_eta"/>
+			<MiningField name="PRI_tau_phi"/>
+			<MiningField name="PRI_tau_pt"/>
+			<MiningField name="Weight"/>
+		</MiningSchema>
+		<Output>
+			<OutputField name="probability(b)" optype="continuous" dataType="double" feature="probability" value="b"/>
+			<OutputField name="probability(s)" optype="continuous" dataType="double" feature="probability" value="s"/>
+		</Output>
+		<RegressionTable intercept="-1.313583023724933E-5" targetCategory="s">
+			<NumericPredictor name="DER_deltaeta_jet_jet" coefficient="-6.538869927561951E-4"/>
+			<NumericPredictor name="DER_deltar_tau_lep" coefficient="2.8790855061656257E-6"/>
+			<NumericPredictor name="DER_lep_eta_centrality" coefficient="-6.654870562006148E-4"/>
+			<NumericPredictor name="DER_mass_MMC" coefficient="0.0018611533414853256"/>
+			<NumericPredictor name="DER_mass_jet_jet" coefficient="0.004039202860234664"/>
+			<NumericPredictor name="DER_mass_transverse_met_lep" coefficient="-0.0022532073847260064"/>
+			<NumericPredictor name="DER_mass_vis" coefficient="-9.820042795667974E-5"/>
+			<NumericPredictor name="DER_met_phi_centrality" coefficient="7.530421021269292E-5"/>
+			<NumericPredictor name="DER_prodeta_jet_jet" coefficient="-7.403548684582824E-4"/>
+			<NumericPredictor name="DER_pt_h" coefficient="-1.7893774536880126E-4"/>
+			<NumericPredictor name="DER_pt_ratio_lep_tau" coefficient="-9.172475031001796E-5"/>
+			<NumericPredictor name="DER_pt_tot" coefficient="1.83273859374971E-4"/>
+			<NumericPredictor name="DER_sum_pt" coefficient="-0.0017273158320331027"/>
+			<NumericPredictor name="EventId" coefficient="-1.3373164421253755E-6"/>
+			<NumericPredictor name="PRI_jet_all_pt" coefficient="-0.0021232204741368594"/>
+			<NumericPredictor name="PRI_jet_leading_eta" coefficient="3.8243190845254564E-4"/>
+			<NumericPredictor name="PRI_jet_leading_phi" coefficient="5.082060497281157E-4"/>
+			<NumericPredictor name="PRI_jet_leading_pt" coefficient="-2.701953627895006E-4"/>
+			<NumericPredictor name="PRI_jet_num" coefficient="-2.706578419590759E-5"/>
+			<NumericPredictor name="PRI_jet_subleading_eta" coefficient="-6.456901377424571E-4"/>
+			<NumericPredictor name="PRI_jet_subleading_phi" coefficient="-7.186740324397913E-4"/>
+			<NumericPredictor name="PRI_jet_subleading_pt" coefficient="-0.0015340074024942417"/>
+			<NumericPredictor name="PRI_lep_eta" coefficient="-1.2986770251122208E-5"/>
+			<NumericPredictor name="PRI_lep_phi" coefficient="-7.90738398755645E-6"/>
+			<NumericPredictor name="PRI_lep_pt" coefficient="-0.0014370268949285413"/>
+			<NumericPredictor name="PRI_met" coefficient="-4.295078268422826E-4"/>
+			<NumericPredictor name="PRI_met_phi" coefficient="-7.33292336892998E-5"/>
+			<NumericPredictor name="PRI_met_sumet" coefficient="-5.269410249286741E-4"/>
+			<NumericPredictor name="PRI_tau_eta" coefficient="-1.2030306368462822E-5"/>
+			<NumericPredictor name="PRI_tau_phi" coefficient="1.0993033948681663E-5"/>
+			<NumericPredictor name="PRI_tau_pt" coefficient="0.0018329461108113245"/>
+			<NumericPredictor name="Weight" coefficient="-1.0451192677577635E-4"/>
+		</RegressionTable>
+		<RegressionTable intercept="0.0" targetCategory="b"/>
+	</RegressionModel>
+</PMML>
