@@ -201,10 +201,11 @@ if __name__ == "__main__":
     from bricks.sparkBrick import getSparkFrameFromCSV, mojoModelScoring
     inModelDiction = dict(zip(inModelDiction.keys(), list(map(lambda x: eval(inModelDiction[x]), inModelDiction.keys()))))
 
-    # Running Data preperation queries to get feature data
-    for query in inQueryFrame.iloc[:-1]:
-        print(query)
-        # spark.sql(query)
+    if inQueryFrame.shape[0] > 1:
+        # Running Data preperation queries to get feature data
+        for query in inQueryFrame.iloc[:-1]:
+            print(query)
+            # spark.sql(query)
     print(inQueryFrame.iloc[-1])
     # inScoreFrame = spark.sql(inQueryFrame.iloc[-1])
 
