@@ -25,7 +25,7 @@ from pyspark.sql.functions import col
 # final = mojo.transform(df).select(df.columns + [col("prediction.*")]).select(df.columns + [col("`Label.b`").\
 #     alias("pb"), col("`Label.s`").alias("ps")]).withColumn("prediction", labelGenerator("ps").cast(IntegerType()))
 
-def getSparkFrameFromCSV(sparkSession, datasetPath, selectionColumns=None):
+def getSparkFrameFromCSV(sparkSession, localFileSystemPath, selectionColumns=None):
     """
     This function returns a sparkSession dataframe from the provided csv file path
     
@@ -34,7 +34,7 @@ def getSparkFrameFromCSV(sparkSession, datasetPath, selectionColumns=None):
     
     Args:
         sparkSession (sparkSession context)      : sparkSession context
-        datasetPath (str)          : path of csv file to be converted to sparkSession dataframe
+        localFileSystemPath (str)          : path of csv file to be converted to sparkSession dataframe
         selectionColumns (list)    : list of column nemes that should be only present in the return dataframe (default value: None)
     
     Returns:
@@ -43,7 +43,7 @@ def getSparkFrameFromCSV(sparkSession, datasetPath, selectionColumns=None):
         df (pyspark.sql.dataframe) : sparkSession dataframe read from csv
     """
     try:
-        df = sparkSession.read.format("csv").option("header", "true").option("inferschema", "true").load(datasetPath)
+        df = sparkSession.read.format("csv").option("header", "true").option("inferschema", "true").load("file://" + localFileSystemPath)
         
         # If all columns are to be selected, return
         if selectionColumns:
@@ -124,7 +124,7 @@ def mojoModelScoring(sparkSession, scoreFrame, mojoFile, selectionColumns=None, 
 
     try:
         # read the mojo file from the provided model object
-        mojo = H2OMOJOPipelineModel.createFromMojo(mojoFile)
+        mojo = H2OMOJOPipelineModel.createFromMojo("file://" + mojoFile)
         if selectionColumns:
             finalFrame = mojo.transform(scoreFrame.select(*selectionColumns))
             colDiction = dict(zip(selectionColumns, outColumns))
