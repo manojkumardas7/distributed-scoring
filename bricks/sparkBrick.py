@@ -19,12 +19,6 @@ import os
 from pyspark.sql.types import BooleanType, IntegerType
 from pyspark.sql.functions import col
 
-# labelGenerator = udf(lambda x:  x > 0.5, BooleanType())
-# mojo = H2OMOJOPipelineModel.createFromMojo(os.path.join(*[absoluteCodePath, "model", "pipeline.mojo"]))
-# _, df = getSparkFrameFromCSV(sparkSession, os.path.join(*[absoluteCodePath, "model", "TestSet.csv"]))
-# final = mojo.transform(df).select(df.columns + [col("prediction.*")]).select(df.columns + [col("`Label.b`").\
-#     alias("pb"), col("`Label.s`").alias("ps")]).withColumn("prediction", labelGenerator("ps").cast(IntegerType()))
-
 def getSparkFrameFromCSV(sparkSession, localFileSystemPath, selectionColumns=None):
     """
     This function returns a sparkSession dataframe from the provided csv file path
@@ -84,11 +78,12 @@ def pmmlModelScoring(sparkSession, scoreFrame, pmmlFile, selectionColumns=None, 
         pmml = ScoreModel.fromFile(pmmlFile)
         if selectionColumns:
             finalFrame = pmml.transform(scoreFrame.select(*selectionColumns))
-            colDiction = dict(zip(selectionColumns, outColumns))
-            finalFrame = finalFrame.select([col(c).alias(c_new) for c, c_new in colDiction.items()])
+            colsToBeRenamed = list(set(finalFrame.columns) - set(selectionColumns))
         else:
             finalFrame = pmml.transform(scoreFrame)
-            colDiction = dict(zip(finalFrame.columns, outColumns))
+            colsToBeRenamed = list(set(finalFrame.columns) - set(scoreFrame.columns))
+        if len(colsToBeRenamed) > 0:
+            colDiction = dict(zip(colsToBeRenamed, outColumns))
             finalFrame = finalFrame.select([col(c).alias(c_new) for c, c_new in colDiction.items()])            
         return True, "Dataset scored against pmml file", finalFrame
     except Exception as e:
@@ -127,11 +122,12 @@ def mojoModelScoring(sparkSession, scoreFrame, mojoFile, selectionColumns=None, 
         mojo = H2OMOJOPipelineModel.createFromMojo("file://" + mojoFile)
         if selectionColumns:
             finalFrame = mojo.transform(scoreFrame.select(*selectionColumns))
-            colDiction = dict(zip(selectionColumns, outColumns))
-            finalFrame = finalFrame.select([col(c).alias(c_new) for c, c_new in colDiction.items()])
+            colsToBeRenamed = list(set(finalFrame.columns) - set(selectionColumns))
         else:
             finalFrame = mojo.transform(scoreFrame)
-            colDiction = dict(zip(finalFrame.columns, outColumns))
+            colsToBeRenamed = list(set(finalFrame.columns) - set(scoreFrame.columns))
+        if len(colsToBeRenamed) > 0:
+            colDiction = dict(zip(colsToBeRenamed, outColumns))            
             finalFrame = finalFrame.select([col(c).alias(c_new) for c, c_new in colDiction.items()])
         return True, "dataset scored against mojo file", finalFrame
     except Exception as e:
