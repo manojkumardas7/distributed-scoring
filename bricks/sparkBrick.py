@@ -67,9 +67,9 @@ def pmmlModelScoring(sparkSession, scoreFrame, pmmlFile, selectionColumns=None, 
         selectionColumns (list)            : list of column names that should be considered to model, when set to None, all columsn are
                                                 considered (Default: None)    
     Returns: 
-        status (bool)                      :
-        message (str)                      :
-        df (pyspark.sql.dataframe)         :
+        status (bool)                      : True/False based on execution of the function
+        message (str)                      : message from execution of the function
+        df (pyspark.sql.dataframe)         : scored data as a pyspark dataframe
     """
     from pypmml_spark import ScoreModel
     
@@ -106,12 +106,12 @@ def mojoModelScoring(sparkSession, scoreFrame, mojoFile, selectionColumns=None, 
         sparkSession (sparkSession context)              : sparkSession context
         mojoFile (model object)            : model object to be used for scoring
         scoreFrame (pyspark.sql.dataframe) : dataframe to be scored against
-        selectionColumns (list)            : list of column names that should be considered to model, when set to None, all columsn are
+        selectionColumns (list)            : list of column names that should be considered to model, when set to None, all columns are
                                                 considered (Default: None)    
     Returns: 
-        status (bool)                      :
-        message (str)                      :
-        df (pyspark.sql.dataframe)         :
+        status (bool)                      : True/False based on execution of the function
+        message (str)                      : message from execution of the function
+        df (pyspark.sql.dataframe)         : scored data as a pyspark dataframe
     """
     if clusterResource:
         sparkSession.sparkContext.addPyFile(clusterResource)
