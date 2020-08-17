@@ -182,7 +182,7 @@ if __name__ == "__main__":
 
     # Looking for model file
     # inModelDiction = {'mojo': 'mojoModelScoring', 'pojo': 'pojoModelScoring', 'pickle': 'pickleModelScoring', 'pmml': 'pmmlModelScoring'}
-    inModelDiction = {'mojo': 'mojoModelScoring'}
+    inModelDiction = {'mojo': 'mojoModelScoring', 'pmml': 'pmmlModelScoring'}
     inStatus, inMessage, modelType, modelFile = modelFileFinder(os.path.join(inAbsoluteCodePath, "model"), inModelDiction.keys())
     checkAndTerminate(inStatus, inMessage)
     inQueryFrame = inQueryFrame.apply(lambda n: reduce(lambda x, y: x.replace(y[0], y[1]), [n] + \
@@ -198,7 +198,7 @@ if __name__ == "__main__":
     inClusterResource = (lambda x: x[0] if x else None)(glob.glob(os.path.join(inAbsoluteCodePath, "codeZips", "*")))
 
     # from bricks.sparkBrick import getSparkFrameFromCSV, mojoModelScoring, pmmlModelScoring, pojoModelScoring, pickleModelScoring
-    from bricks.sparkBrick import getSparkFrameFromCSV, mojoModelScoring
+    from bricks.sparkBrick import getSparkFrameFromCSV, mojoModelScoring, pmmlModelScoring
     inModelDiction = dict(zip(inModelDiction.keys(), list(map(lambda x: eval(inModelDiction[x]), inModelDiction.keys()))))
 
     if inQueryFrame.shape[0] > 1:
