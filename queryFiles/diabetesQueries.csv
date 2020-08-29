@@ -1,0 +1,2 @@
+INSERT INTO diabetes (SELECT * FROM diabetes);
+SELECT * FROM diabetes;

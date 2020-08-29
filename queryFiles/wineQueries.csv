@@ -1,0 +1,4 @@
+ALTER TABLE wine DROP COLUMN color_intensity ;
+ALTER TABLE wine ADD dummyCol varchar();
+ALTER TABLE wine RENAME COLUMN alcohol TO alco;
+SELECT * FROM wine;

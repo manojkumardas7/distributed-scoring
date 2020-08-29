@@ -1,0 +1,3 @@
+SELECT(*) FROM iris WHERE sepal_length > 4;
+SELECT(*) FROM iris WHERE sepal_width > 1.6;
+SELECT (*) FROM iris;
