@@ -9,7 +9,7 @@ This is a utility code base that will enable distributed scoring on spark engine
                 
     - queries need to be in uppper case
     - associated parameters need to be lower case, parameters can be alpha-numeric and contain special characters, but needs to start with a letter
-    -last query in the csv file is expected to generate data, that will be captured as a spark frame
+    - last query in the csv file is expected to generate data, that will be captured as a spark frame
 - Step 3: Edit the csv file 'pipelineArguments.csv' with the parameters present in your query
     - first column should contain the parameters (case-insensitive)
     - second column can be an associated default value (optional) for the parameter
