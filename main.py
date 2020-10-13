@@ -211,7 +211,7 @@ if __name__ == "__main__":
                 spark.sql(query)
         print(inQueryFrame.iloc[-1])
         inScoreFrame = spark.sql(inQueryFrame.iloc[-1])
-        inStatus, inMessage = (True, "ETL completed")
+        inStatus, inMessage = (False, "ETL completed but returned no data") if inScoreFrame.rdd.isEmpty() else (True, "ETL completed")
     except Exception as e:
         inStatus, inMessage = (False, "ETL failed:\n{}".format(e))
     inLogger.warn(inMessage)
