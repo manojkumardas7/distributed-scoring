@@ -10,9 +10,9 @@ This is a utility code base that will enable distributed scoring on spark engine
     - queries need to be in uppper case
     - associated parameters need to be lower case, parameters can be alpha-numeric and contain special characters, but needs to start with a letter
     -last query in the csv file is expected to generate data, that will be captured as a spark frame
-- Step 3: Edit the csv file 'pipelineArguments.csv' with the paramters present in your query
+- Step 3: Edit the csv file 'pipelineArguments.csv' with the parameters present in your query
     - first column should contain the parameters (case-insensitive)
-    -second column can be an associated default value (optional) for the parameter
+    - second column can be an associated default value (optional) for the parameter
     - if no default value is provided the parameter will a mandatory argument to be parsed to scoring pipeline
 - Step 4: Drop your exported model file (MOJO/PMML) inside the model folder. Additional step     depending on what while model format follow below sections
 
@@ -21,7 +21,7 @@ This is a utility code base that will enable distributed scoring on spark engine
         - mainAttributes
             appName: application name the spark job is going to take
 
-        - scoringAttributes (optional argumnets, comma separated with square brackets or blank)
+        - scoringAttributes (optional arguments, comma separated with square brackets or blank)
             columnSelection: list of columns to be considered for the scoring post ETL  
             columnOut: list of columns the scoring columns should be renamed with
         -modelOutput
