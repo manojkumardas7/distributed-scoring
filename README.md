@@ -28,7 +28,7 @@ This is a utility code base that will enable distributed scoring on spark engine
             hiveTable: name of the hive table the final scored data is appeneded to
 
 ### Run your pipeline
-Your pipeline can now be executed by runnig required spark-submit command to main.py. Mandatory arguments need be parsed to the main.py file using double hyphens, optional arguments can also be parsed similarly. mainpy will now impliment the ETL using the parameterized queries, supplemented by parameter values, after which the last query will be captured as a spark frame and utilized to performm scoring. You can have additional arguments as well included in 'pipelineArguments.csv' file to do more customization in the main.py file. You can run the scoring pipeline as per the below syntax:
+Your pipeline can now be executed by runnig required spark-submit command to main.py. Mandatory arguments need be parsed to the main.py file using double hyphens, optional arguments can also be parsed similarly. main.py will now impliment the ETL using the parameterized queries, supplemented by parameter values, after which the last query will be captured as a spark frame and utilized to performm scoring. You can have additional arguments as well included in 'pipelineArguments.csv' file to do more customization in the main.py file. You can run the scoring pipeline as per the below syntax:
 
     spark-submit --properties-file config.conf main.py <arguments to be parsed>
 ---
