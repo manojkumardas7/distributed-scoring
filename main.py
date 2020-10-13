@@ -103,11 +103,13 @@ if __name__ == "__main__":
     inPipelineArgsFile = os.path.join(inAbsoluteCodePath, inPipelineArgsFileName)
     inQueryFile = os.path.join(inAbsoluteCodePath, inQueryFileName)
     inRegulerExpression = r"\b[a-z][a-z-_0-9]+\b"
+
     #change the below dictionary accordingly, update the config file accordingly
     inArgsDiction = \
         {
-            "mainAttributes": [["appName", "str"], ["datasetName", "str"]],
-            "scoringAttributes": [["columnSelection", "list"], ["columnOut", "list"]]
+            "mainAttributes": [["appName", "str"]],
+            "scoringAttributes": [["columnSelection", "list"], ["columnOut", "list"]],
+            "modelOutput": [["hiveTable", "str"]]
         }
     # inPipelineArgs = set(map(lambda x: x.strip().lower(), open(inPipelineArgsFile).readlines()))
     inPipelineArgs = pd.read_csv(inPipelineArgsFile, header=None, names=["arg", "value"]).iloc[:, :2]
@@ -181,7 +183,6 @@ if __name__ == "__main__":
                 inArgsDiction.keys())) is None
 
     # Looking for model file
-    # inModelDiction = {'mojo': 'mojoModelScoring', 'pojo': 'pojoModelScoring', 'pickle': 'pickleModelScoring', 'pmml': 'pmmlModelScoring'}
     inModelDiction = {'mojo': 'mojoModelScoring', 'pmml': 'pmmlModelScoring'}
     inStatus, inMessage, modelType, modelFile = modelFileFinder(os.path.join(inAbsoluteCodePath, "model"), inModelDiction.keys())
     checkAndTerminate(inStatus, inMessage)
@@ -198,25 +199,39 @@ if __name__ == "__main__":
     inClusterResource = (lambda x: x[0] if x else None)(glob.glob(os.path.join(inAbsoluteCodePath, "codeZips", "*")))
 
     # from bricks.sparkBrick import getSparkFrameFromCSV, mojoModelScoring, pmmlModelScoring, pojoModelScoring, pickleModelScoring
-    from bricks.sparkBrick import getSparkFrameFromCSV, mojoModelScoring, pmmlModelScoring
+    from bricks.sparkBrick import mojoModelScoring, pmmlModelScoring
     inModelDiction = dict(zip(inModelDiction.keys(), list(map(lambda x: eval(inModelDiction[x]), inModelDiction.keys()))))
 
-    if inQueryFrame.shape[0] > 1:
-        # Running Data preperation queries to get feature data
-        for query in inQueryFrame.iloc[:-1]:
-            print(query)
-            # spark.sql(query)
-    print(inQueryFrame.iloc[-1])
-    # inScoreFrame = spark.sql(inQueryFrame.iloc[-1])
-
-    inStatus, inMessage, inScoreFrame = getSparkFrameFromCSV(inSpark, os.path.join(inAbsoluteCodePath, "inputs", myDatasetName))
-    checkAndTerminate(inStatus, inMessage)
+    inLogger.warn("ETL initialized")
+    try:
+        if inQueryFrame.shape[0] > 1:
+            # Running Data preperation queries to get feature data
+            for query in inQueryFrame.iloc[:-1]:
+                print(query)
+                spark.sql(query)
+        print(inQueryFrame.iloc[-1])
+        inScoreFrame = spark.sql(inQueryFrame.iloc[-1])
+        inStatus, inMessage = (True, "ETL completed")
+    except Exception as e:
+        inStatus, inMessage = (False, "ETL failed:\n{}".format(e))
+    inLogger.warn(inMessage)
+    checkAndTerminate(inStatus, inMessage, inSpark)
     
     # Calling the appropriate function to score the model according to the model file format found
     inStatus, inMessage, inOutputFrame = inModelDiction[modelType](inSpark, inScoreFrame, os.path.join(inAbsoluteCodePath, "model", modelFile), 
                                             myColumnSelection, myColumnOut, inClusterResource)
-    if inStatus:
-        inOutputFrame.show()
+    inLogger.warn(inMessage)
+    checkAndTerminate(inStatus, inMessage, inSpark)
+    inStatus, inMessage = (True, 'intializing write to model output table') if myHiveTable else (False, 'no hive table specified for writing model output')
+    inLogger.warn(inMessage)
+    checkAndTerminate(inStatus, inMessage, inSpark)
+    try:
+        sparkFrame.write.mode('append').saveAsTable(myHiveTable)
+        inStatus, inMessage = (True, "model output written to hive table: {}".format(myHiveTable))
+    except Exception as e:
+        inStatus, inMessage = (True, "model output failed to write to hive table: {}\n{}".format(myHiveTable, e))
+    inLogger.warn(inMessage)
+    checkAndTerminate(inStatus, inMessage, inSpark)
     try:
         get_ipython().__class__.__name__ is None
     except Exception as e:
