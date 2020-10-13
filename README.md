@@ -13,7 +13,7 @@ This is a utility code base that will enable distributed scoring on spark engine
 - Step 3: Edit the csv file 'pipelineArguments.csv' with the parameters present in your query
     - first column should contain the parameters (case-insensitive)
     - second column can be an associated default value (optional) for the parameter
-    - if no default value is provided the parameter will a mandatory argument to be parsed to scoring pipeline
+    - if no default value is provided the parameter will be a mandatory argument to be parsed to scoring pipeline
 - Step 4: Drop your exported model file (MOJO/PMML) inside the model folder. Additional step     depending on what while model format follow below sections
 
 - Step 5: Edit the config.cfg file, for their arguments, below are the descriptions
@@ -40,7 +40,7 @@ Your pipeline can now be executed by runnig required spark-submit command to mai
 ---
 
 ### MOJO
-Place the required pysarkling water zip file in the directory codeZips from https://www.h2o.ai/download/, to use a mojo model
+Place the required pysparkling water zip file in the directory codeZips from https://www.h2o.ai/download/, to use a mojo model
 
 ### PMML
 Download and install this [library](https://github.com/autodeployai/pypmml-spark). If you already have a PySpark environment setup, follow the below steps:
