@@ -5,7 +5,7 @@ This is a utility code base that will enable distributed scoring on spark engine
 
 ### Creating a scoring pipeline in 5 easy steps
 - Step 1: Download the files from the master branch
-- Step 2: Edit the csv file 'fr_query.csv' with your hive queries. Standards to follow are
+- Step 2: Edit the csv file 'fr_query.csv' with your hive queries. Standards to follow are:
                 
     - queries need to be in uppper case
     - associated parameters need to be lower case, parameters can be alpha-numeric and contain special characters, but needs to start with a letter
@@ -14,7 +14,7 @@ This is a utility code base that will enable distributed scoring on spark engine
     - first column should contain the parameters (case-insensitive)
     - second column can be an associated default value (optional) for the parameter
     - if no default value is provided the parameter will be a mandatory argument to be parsed to scoring pipeline
-- Step 4: Drop/Replace your exported model file (MOJO/PMML) inside the model folder. 
+- Step 4: Drop/Replace your exported model file (MOJO/PMML) inside the model folder: 
     - Supported formats are: **PMML**, **MOJO** 
     - Make sure you have only one model file of the acceptable format present in the model folder
     - Additional steps required, depending on the model format, are specifed in below sections
