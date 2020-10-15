@@ -14,7 +14,7 @@ This is a utility code base that will enable distributed scoring on spark engine
     - first column should contain the parameters (case-insensitive)
     - second column can be an associated default value (optional) for the parameter
     - if no default value is provided the parameter will be a mandatory argument to be parsed to scoring pipeline
-- Step 4: Drop/Replace your exported model file (MOJO/PMML) inside the model folder. Additional steps depending on what your model format are specifed in below sections. Supported formats are: **PMML**, **MOJO**. Make sure you there is only one model file of an acceptable format present in the model folder
+- Step 4: Drop/Replace your exported model file (MOJO/PMML) inside the model folder. Additional steps depending on what your model format are specifed in below sections. Supported formats are: **PMML**, **MOJO**. Make sure you have only one model file of the acceptable format present in the model folder
 
 - Step 5: Edit the config.cfg file, for their arguments, below are the descriptions
 
