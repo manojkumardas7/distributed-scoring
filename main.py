@@ -49,7 +49,9 @@ def checkAndTerminate(checkValue, message, logger=None, sparkSession=None):
     try:
         get_ipython().__class__.__name__ is None
     except Exception as e:
-        sparkSession.stop() if sparkSession else None
+        if sparkSession:
+            sparkSession.stop()
+            print('spark session terminated')
         quit()
 
 def createGlobalObject(objectName, objectValue):
@@ -211,9 +213,9 @@ if __name__ == "__main__":
             # Running Data preperation queries to get feature data
             for query in inQueryFrame.iloc[:-1]:
                 print(query)
-                spark.sql(query)
+                inSpark.sql(query)
         print(inQueryFrame.iloc[-1])
-        inScoreFrame = spark.sql(inQueryFrame.iloc[-1])
+        inScoreFrame = inSpark.sql(inQueryFrame.iloc[-1])
         inStatus, inMessage = (False, "ETL completed but returned no data") if inScoreFrame.rdd.isEmpty() else (True, "ETL completed")
     except Exception as e:
         inStatus, inMessage = (False, "ETL failed:\n{}".format(e))
@@ -231,3 +233,4 @@ if __name__ == "__main__":
     except Exception as e:
         inStatus, inMessage = (True, "model output failed to write to hive table: {}\n{}".format(myHiveTable, e))
     checkAndTerminate(inStatus, inMessage, inLogger, inSpark)
+    checkAndTerminate(False, "Scoring Pipeline completed succesfully", inLogger, inSpark)
