@@ -233,4 +233,4 @@ if __name__ == "__main__":
     except Exception as e:
         inStatus, inMessage = (True, "model output failed to write to hive table: {}\n{}".format(myHiveTable, e))
     checkAndTerminate(inStatus, inMessage, inLogger, inSpark)
-    checkAndTerminate(False, "Scoring Pipeline completed succesfully", inLogger, inSpark)
+    checkAndTerminate(False, "Scoring pipeline completed successfully", inLogger, inSpark)
