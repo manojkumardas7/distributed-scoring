@@ -52,7 +52,7 @@ def checkAndTerminate(checkValue, message, logger=None, sparkSession=None):
         if sparkSession:
             sparkSession.stop()
             print('spark session terminated')
-        quit()
+    quit()
 
 def createGlobalObject(objectName, objectValue):
     """
