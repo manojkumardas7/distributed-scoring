@@ -38,7 +38,7 @@ Your pipeline can now be executed by runnig required spark-submit command to mai
 **NOTE**
 
 - Arguments in the config.cfg file can also be parsed (over-ride) to the main.py file
-- All relevant places where edit/entries are to be made have pre-filled values for example and are to be replaced
+- All relevant places where edit/entries are to be made have pre-filled values for the purpose of demonstration and are to be replaced
 
 ---
 
