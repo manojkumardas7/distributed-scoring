@@ -29,7 +29,7 @@ from bricks.utils import modelFileFinder
 ########## Operational Functions
 myTitle = lambda x: "my" + x[0].title() + x[1:]
 
-def checkAndTerminate(checkValue, message, sparkSession=None):
+def checkAndTerminate(checkValue, message, logger=None, sparkSession=None):
     """
     This function takes in a boolean value, checkValue and a string, terminateMessage. 
     It returns doing nothing if checkValue is not False/None, else
@@ -42,11 +42,14 @@ def checkAndTerminate(checkValue, message, sparkSession=None):
         checkValue (bool)      : Boolean value to determine if exit from execution/terminal of python should be done
         terminateMessage (str) : message to be displayed if execution/terminal of python is goint to happen
     """
+    logger.warn(message) if logger else None
     if checkValue:
         return
-    else:
-        print(message)
-        None if sparkSession is None else sparkSession.stop()
+    print(message)
+    try:
+        get_ipython().__class__.__name__ is None
+    except Exception as e:
+        sparkSession.stop() if sparkSession else None
         quit()
 
 def createGlobalObject(objectName, objectValue):
@@ -214,25 +217,17 @@ if __name__ == "__main__":
         inStatus, inMessage = (False, "ETL completed but returned no data") if inScoreFrame.rdd.isEmpty() else (True, "ETL completed")
     except Exception as e:
         inStatus, inMessage = (False, "ETL failed:\n{}".format(e))
-    inLogger.warn(inMessage)
-    checkAndTerminate(inStatus, inMessage, inSpark)
+    checkAndTerminate(inStatus, inMessage, inLogger, inSpark)
     
     # Calling the appropriate function to score the model according to the model file format found
     inStatus, inMessage, inOutputFrame = inModelDiction[modelType](inSpark, inScoreFrame, os.path.join(inAbsoluteCodePath, "model", modelFile), 
                                             myColumnSelection, myColumnOut, inClusterResource)
-    inLogger.warn(inMessage)
-    checkAndTerminate(inStatus, inMessage, inSpark)
+    checkAndTerminate(inStatus, inMessage, inLogger, inSpark)
     inStatus, inMessage = (True, 'intializing write to model output table') if myHiveTable else (False, 'no hive table specified for writing model output')
-    inLogger.warn(inMessage)
-    checkAndTerminate(inStatus, inMessage, inSpark)
+    checkAndTerminate(inStatus, inMessage, inLogger, inSpark)
     try:
         sparkFrame.write.mode('append').saveAsTable(myHiveTable)
         inStatus, inMessage = (True, "model output written to hive table: {}".format(myHiveTable))
     except Exception as e:
         inStatus, inMessage = (True, "model output failed to write to hive table: {}\n{}".format(myHiveTable, e))
-    inLogger.warn(inMessage)
-    checkAndTerminate(inStatus, inMessage, inSpark)
-    try:
-        get_ipython().__class__.__name__ is None
-    except Exception as e:
-        inSpark.stop()
+    checkAndTerminate(inStatus, inMessage, inLogger, inSpark)
