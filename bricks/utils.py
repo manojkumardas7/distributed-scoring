@@ -1,6 +1,6 @@
 '''
-# ================================================================================#
-#-- Authors: Manoj Kumar Das(manojkumardas7@gmail.com), Akshit Gattani(gattani.akshit@gmail.com)
+# ==============================================================================================================================================#
+#-- Authors: Manoj Kumar Das(manojkumardas7@gmail.com), Akshit Gattani(gattani.akshit@gmail.com), Prejith Premkumar(prajithpremg@gmail.com)
 #-- Date: July 27, 2020
 #-- Description: collection of useful utilities
 #-- Version : 3.0
@@ -11,7 +11,7 @@
 #       ast
 #       argparse
 #       configparser
-# ================================================================================#
+# ==============================================================================================================================================#
 '''
 
 # Library imports

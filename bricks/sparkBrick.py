@@ -1,6 +1,6 @@
 '''
-# ================================================================================#
-#-- Authors: Manoj Kumar Das(manojkumardas7@gmail.com), Akshit Gattani(gattani.akshit@gmail.com)
+# ==============================================================================================================================================#
+#-- Authors: Manoj Kumar Das(manojkumardas7@gmail.com), Akshit Gattani(gattani.akshit@gmail.com), Prejith Premkumar(prajithpremg@gmail.com)
 #-- Date: July 27, 2020
 #-- Description: collection of sparkSession specific functions
 #-- Version : 3.0
@@ -11,13 +11,13 @@
 #       ast
 #       argparse
 #       configparser
-# ================================================================================#
+# ==============================================================================================================================================#
 '''
 
 # Library imports
 import os
-from pyspark.sql.types import BooleanType, IntegerType
 from pyspark.sql.functions import col
+from pyspark.sql.types import BooleanType, IntegerType
 
 def getSparkFrameFromCSV(sparkSession, localFileSystemPath, selectionColumns=None):
     """
@@ -27,9 +27,9 @@ def getSparkFrameFromCSV(sparkSession, localFileSystemPath, selectionColumns=Non
         status, message, df = getSparkFrameFromCSV(sparkSession, "/path/to/data/dataset.csv")
     
     Args:
-        sparkSession (sparkSession context)      : sparkSession context
+        sparkSession (sparkSession context): sparkSession context
         localFileSystemPath (str)          : path of csv file to be converted to sparkSession dataframe
-        selectionColumns (list)    : list of column nemes that should be only present in the return dataframe (default value: None)
+        selectionColumns (list)            : list of column nemes that should be only present in the return dataframe (default value: None)
     
     Returns:
         status (bool)              : True or False depending on state of data read  
