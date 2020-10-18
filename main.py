@@ -228,7 +228,7 @@ if __name__ == "__main__":
     inStatus, inMessage = (True, 'intializing write to model output table') if myHiveTable else (False, 'no hive table specified for writing model output')
     checkAndTerminate(inStatus, inMessage, inLogger, inSpark)
     try:
-        sparkFrame.write.mode('append').saveAsTable(myHiveTable)
+        inOutputFrame.write.mode('append').saveAsTable(myHiveTable)
         inStatus, inMessage = (True, "model output written to hive table: {}".format(myHiveTable))
     except Exception as e:
         inStatus, inMessage = (True, "model output failed to write to hive table: {}\n{}".format(myHiveTable, e))

@@ -16,6 +16,7 @@
 
 # Library imports
 import os
+from functools import reduce
 from pyspark.sql.functions import col
 from pyspark.sql.types import BooleanType, IntegerType
 
@@ -77,15 +78,16 @@ def pmmlModelScoring(sparkSession, scoreFrame, pmmlFile, selectionColumns=None, 
         # read the mojo file from the provided model object
         pmml = ScoreModel.fromFile(pmmlFile)
         if selectionColumns:
-            finalFrame = pmml.transform(scoreFrame.select(*selectionColumns))
-            colsToBeRenamed = list(set(finalFrame.columns) - set(selectionColumns))
+            transformFrame = pmml.transform(scoreFrame.select(*selectionColumns))
         else:
-            finalFrame = pmml.transform(scoreFrame)
-            colsToBeRenamed = list(set(finalFrame.columns) - set(scoreFrame.columns))
-        if len(colsToBeRenamed) > 0:
-            colDiction = dict(zip(colsToBeRenamed, outColumns))
-            finalFrame = finalFrame.select([col(c).alias(c_new) for c, c_new in colDiction.items()])            
-        return True, "Dataset scored against pmml file", finalFrame
+            transformFrame = pmml.transform(scoreFrame)
+        if outColumns:
+            colsToBeRenamed = (lambda y: list(filter(lambda x: x not in y, transformFrame.columns)))(scoreFrame.columns)
+            finalFrame = eval("transformFrame" + reduce(lambda x, y: x + ".withColumnRenamed('" + y[0] + "','" + y[1] + "')",
+                                                     [''] + list(zip(colsToBeRenamed, outColumns))))
+            return True, "dataset scored against pmml file", finalFrame
+        else:
+            return True, "dataset scored against pmml file", transformFrame
     except Exception as e:
         print("Error occured while scoring the pmml file {} on the provided dataset:\n{}".format(pmmlFile, e))
         return False, e, None
@@ -121,15 +123,16 @@ def mojoModelScoring(sparkSession, scoreFrame, mojoFile, selectionColumns=None, 
         # read the mojo file from the provided model object
         mojo = H2OMOJOPipelineModel.createFromMojo("file://" + mojoFile)
         if selectionColumns:
-            finalFrame = mojo.transform(scoreFrame.select(*selectionColumns))
-            colsToBeRenamed = list(set(finalFrame.columns) - set(selectionColumns))
+            transformFrame = mojo.transform(scoreFrame.select(*selectionColumns))
         else:
-            finalFrame = mojo.transform(scoreFrame)
-            colsToBeRenamed = list(set(finalFrame.columns) - set(scoreFrame.columns))
-        if len(colsToBeRenamed) > 0:
-            colDiction = dict(zip(colsToBeRenamed, outColumns))            
-            finalFrame = finalFrame.select([col(c).alias(c_new) for c, c_new in colDiction.items()])
-        return True, "dataset scored against mojo file", finalFrame
+            transformFrame = mojo.transform(scoreFrame)
+        if outColumns:
+            colsToBeRenamed = (lambda y: list(filter(lambda x: x not in y, transformFrame.columns)))(scoreFrame.columns)
+            finalFrame = eval("transformFrame" + reduce(lambda x, y: x + ".withColumnRenamed('" + y[0] + "','" + y[1] + "')",
+                                                     [''] + list(zip(colsToBeRenamed, outColumns))))
+            return True, "dataset scored against mojo file", finalFrame
+        else:
+            return True, "dataset scored against mojo file", transformFrame
     except Exception as e:
         print("Error occured while scoring the mojo file {} on the provided dataset:\n{}".format(mojoFile, e))
         return False, e, None
