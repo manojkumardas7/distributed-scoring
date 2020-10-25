@@ -1,6 +1,6 @@
 '''
-# ================================================================================#
-#-- Authors: Manoj Kumar Das(manojkumardas7@gmail.com), Akshit Gattani(gattani.akshit@gmail.com)
+# ==============================================================================================================================================#
+#-- Authors: Manoj Kumar Das(manojkumardas7@gmail.com), Akshit Gattani(gattani.akshit@gmail.com), Prejith Premkumar(prajithpremg@gmail.com)
 #-- Date: July 27, 2020
 #-- Description: Main file to the distributed-scoring utility
 #-- Version : 3.0
@@ -11,7 +11,7 @@
 #       ast
 #       argparse
 #       configparser
-# ================================================================================#
+# ==============================================================================================================================================#
 '''
 
 # Library imports
@@ -29,7 +29,7 @@ from bricks.utils import modelFileFinder
 ########## Operational Functions
 myTitle = lambda x: "my" + x[0].title() + x[1:]
 
-def checkAndTerminate(checkValue, message, sparkSession=None):
+def checkAndTerminate(checkValue, message, logger=None, sparkSession=None):
     """
     This function takes in a boolean value, checkValue and a string, terminateMessage. 
     It returns doing nothing if checkValue is not False/None, else
@@ -42,12 +42,17 @@ def checkAndTerminate(checkValue, message, sparkSession=None):
         checkValue (bool)      : Boolean value to determine if exit from execution/terminal of python should be done
         terminateMessage (str) : message to be displayed if execution/terminal of python is goint to happen
     """
+    logger.warn(message) if logger else None
     if checkValue:
         return
-    else:
-        print(message)
-        None if sparkSession is None else sparkSession.stop()
-        quit()
+    print(message)
+    try:
+        get_ipython().__class__.__name__ is None
+    except Exception as e:
+        if sparkSession:
+            sparkSession.stop()
+            print('spark session terminated')
+    quit()
 
 def createGlobalObject(objectName, objectValue):
     """
@@ -96,18 +101,20 @@ if __name__ == "__main__":
     except Exception as e:
         inAbsoluteCodePath = os.path.realpath(".")
 
-    inConfigFileName = "test_config.cfg"
+    inConfigFileName = "config.cfg"
     inPipelineArgsFileName = "pipelineArguments.csv"
     inQueryFileName = "fr_query.csv"
     inConfigFile = os.path.join(inAbsoluteCodePath, inConfigFileName)
     inPipelineArgsFile = os.path.join(inAbsoluteCodePath, inPipelineArgsFileName)
     inQueryFile = os.path.join(inAbsoluteCodePath, inQueryFileName)
     inRegulerExpression = r"\b[a-z][a-z-_0-9]+\b"
+
     #change the below dictionary accordingly, update the config file accordingly
     inArgsDiction = \
         {
-            "mainAttributes": [["appName", "str"], ["datasetName", "str"]],
-            "scoringAttributes": [["columnSelection", "list"], ["columnOut", "list"]]
+            "mainAttributes": [["appName", "str"]],
+            "scoringAttributes": [["columnSelection", "list"], ["columnOut", "list"]],
+            "modelOutput": [["hiveTable", "str"]]
         }
     # inPipelineArgs = set(map(lambda x: x.strip().lower(), open(inPipelineArgsFile).readlines()))
     inPipelineArgs = pd.read_csv(inPipelineArgsFile, header=None, names=["arg", "value"]).iloc[:, :2]
@@ -181,7 +188,6 @@ if __name__ == "__main__":
                 inArgsDiction.keys())) is None
 
     # Looking for model file
-    # inModelDiction = {'mojo': 'mojoModelScoring', 'pojo': 'pojoModelScoring', 'pickle': 'pickleModelScoring', 'pmml': 'pmmlModelScoring'}
     inModelDiction = {'mojo': 'mojoModelScoring', 'pmml': 'pmmlModelScoring'}
     inStatus, inMessage, modelType, modelFile = modelFileFinder(os.path.join(inAbsoluteCodePath, "model"), inModelDiction.keys())
     checkAndTerminate(inStatus, inMessage)
@@ -198,26 +204,33 @@ if __name__ == "__main__":
     inClusterResource = (lambda x: x[0] if x else None)(glob.glob(os.path.join(inAbsoluteCodePath, "codeZips", "*")))
 
     # from bricks.sparkBrick import getSparkFrameFromCSV, mojoModelScoring, pmmlModelScoring, pojoModelScoring, pickleModelScoring
-    from bricks.sparkBrick import getSparkFrameFromCSV, mojoModelScoring, pmmlModelScoring
+    from bricks.sparkBrick import mojoModelScoring, pmmlModelScoring
     inModelDiction = dict(zip(inModelDiction.keys(), list(map(lambda x: eval(inModelDiction[x]), inModelDiction.keys()))))
 
-    if inQueryFrame.shape[0] > 1:
-        # Running Data preperation queries to get feature data
-        for query in inQueryFrame.iloc[:-1]:
-            print(query)
-            # spark.sql(query)
-    print(inQueryFrame.iloc[-1])
-    # inScoreFrame = spark.sql(inQueryFrame.iloc[-1])
-
-    inStatus, inMessage, inScoreFrame = getSparkFrameFromCSV(inSpark, os.path.join(inAbsoluteCodePath, "inputs", myDatasetName))
-    checkAndTerminate(inStatus, inMessage)
+    inLogger.warn("ETL initialized")
+    try:
+        if inQueryFrame.shape[0] > 1:
+            # Running Data preperation queries to get feature data
+            for query in inQueryFrame.iloc[:-1]:
+                print(query)
+                inSpark.sql(query)
+        print(inQueryFrame.iloc[-1])
+        inScoreFrame = inSpark.sql(inQueryFrame.iloc[-1])
+        inStatus, inMessage = (False, "ETL completed but returned no data") if inScoreFrame.rdd.isEmpty() else (True, "ETL completed")
+    except Exception as e:
+        inStatus, inMessage = (False, "ETL failed:\n{}".format(e))
+    checkAndTerminate(inStatus, inMessage, inLogger, inSpark)
     
     # Calling the appropriate function to score the model according to the model file format found
     inStatus, inMessage, inOutputFrame = inModelDiction[modelType](inSpark, inScoreFrame, os.path.join(inAbsoluteCodePath, "model", modelFile), 
                                             myColumnSelection, myColumnOut, inClusterResource)
-    if inStatus:
-        inOutputFrame.show()
+    checkAndTerminate(inStatus, inMessage, inLogger, inSpark)
+    inStatus, inMessage = (True, 'intializing write to model output table') if myHiveTable else (False, 'no hive table specified for writing model output')
+    checkAndTerminate(inStatus, inMessage, inLogger, inSpark)
     try:
-        get_ipython().__class__.__name__ is None
+        inOutputFrame.write.mode('append').saveAsTable(myHiveTable)
+        inStatus, inMessage = (True, "model output written to hive table: {}".format(myHiveTable))
     except Exception as e:
-        inSpark.stop()
+        inStatus, inMessage = (True, "model output failed to write to hive table: {}\n{}".format(myHiveTable, e))
+    checkAndTerminate(inStatus, inMessage, inLogger, inSpark)
+    checkAndTerminate(False, "Scoring pipeline completed successfully", inLogger, inSpark)
