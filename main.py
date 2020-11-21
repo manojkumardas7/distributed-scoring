@@ -1,7 +1,7 @@
 '''
 # ==============================================================================================================================================#
 #-- Authors: Manoj Kumar Das(manojkumardas7@gmail.com), Akshit Gattani(gattani.akshit@gmail.com), Prejith Premkumar(prajithpremg@gmail.com)
-#-- Date: July 27, 2020
+#-- Date: November 22, 2020
 #-- Description: Main file to the distributed-scoring utility
 #-- Version : 3.0
 #-- Revisions: None
@@ -109,7 +109,7 @@ if __name__ == "__main__":
     inQueryFile = os.path.join(inAbsoluteCodePath, inQueryFileName)
     inRegulerExpression = r"\b[a-z][a-z-_0-9]+\b"
 
-    #change the below dictionary accordingly, update the config file accordingly
+    # Change the below dictionary accordingly, update the config file accordingly
     inArgsDiction = \
         {
             "mainAttributes": [["appName", "str"]],
