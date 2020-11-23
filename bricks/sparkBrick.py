@@ -16,6 +16,8 @@
 
 # Library imports
 import os
+import numpy as np
+import onnxruntime as rt
 from functools import reduce
 from pyspark.sql.functions import col
 from pyspark.sql.types import BooleanType, IntegerType
@@ -54,6 +56,17 @@ def pickleModelScoring(sparkSession, scoreFrame, pojoFile):
     """
     pass
 
+def onnxModelScoring(sparkSession, scoreFrame, onnxFile):
+    """
+    """
+    input_data =  dict(zip(scoreFrame.columns, \
+                            list(map(lambda x: np.array(df.select(x).collect()).ravel(), \
+                                scoreFrame.columns)))) # converting to {label: values}
+    onnxModel = rt.InferenceSession(onnxFile) # loading
+    output = onnxModel.run(None, input_data) # scoring
+    # TODO: convert output back to a spark dataframe
+    
+
 def pmmlModelScoring(sparkSession, scoreFrame, pmmlFile, selectionColumns=None, outColumns=None):
     """
     Performs scoring on the dataset provided against the mojo file passed to this scoring function
@@ -75,7 +88,7 @@ def pmmlModelScoring(sparkSession, scoreFrame, pmmlFile, selectionColumns=None, 
     from pypmml_spark import ScoreModel
     
     try:
-        # read the mojo file from the provided model object
+        # read the pmml file from the provided model object
         pmml = ScoreModel.fromFile(pmmlFile)
         if selectionColumns:
             transformFrame = pmml.transform(scoreFrame.select(*selectionColumns))
